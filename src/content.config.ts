@@ -25,7 +25,7 @@ export const collections = {
       title: z.string(),
       kind: z.enum(['ksiazka', 'kanal-yt', 'podcast', 'artykul', 'film']),
       author: z.string().optional(),
-      url: z.string().url(),
+      url: z.url(),
       lang: z.enum(['pl', 'en']).default('pl'),
       level: z.enum(['początkujący', 'średni', 'zaawansowany']).optional(),
       summary: z.string(),

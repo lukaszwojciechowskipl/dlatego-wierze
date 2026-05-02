@@ -1,0 +1,129 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import KnowledgeMap, { type KnowledgeNode, type KnowledgeEdge } from '@/components/interactive/KnowledgeMap';
+import { CONSTELLATIONS } from '@/lib/constants';
+import { sanityClient } from '@/lib/sanity';
+import { KNOWLEDGE_GRAPH } from '@/lib/queries';
+
+interface SanityRef { _id: string; slug: string; argRefs?: string[] }
+interface SanityArgRef extends SanityRef { title: string; orderIndex?: number }
+interface SanityTestimony extends SanityRef { personName: string; kind?: string }
+interface SanitySaint extends SanityRef { name: string; rank?: string }
+interface SanityMiracle extends SanityRef { title: string; kind?: string }
+interface SanityFamous extends SanityRef { name: string; profession?: string }
+
+interface GraphResult {
+  arguments?: SanityArgRef[];
+  testimonies?: SanityTestimony[];
+  saints?: SanitySaint[];
+  miracles?: SanityMiracle[];
+  famousPeople?: SanityFamous[];
+  argumentLinks?: Array<{ _id: string; argRefs?: string[] }>;
+}
+
+let graph: GraphResult = {};
+try {
+  graph = (await sanityClient.fetch(KNOWLEDGE_GRAPH)) ?? {};
+} catch (err) {
+  console.warn('[mapa-wiedzy] sanity fetch failed:', err);
+}
+
+const nodes: KnowledgeNode[] = [];
+const edges: KnowledgeEdge[] = [];
+
+// Map Sanity argument _id -> our local stable slug-based id (so edges resolve
+// even if Sanity has its own argument doc with a different orderIndex).
+const sanityArgIdToSlug = new Map<string, string>();
+for (const a of graph.arguments ?? []) {
+  if (a.slug) sanityArgIdToSlug.set(a._id, a.slug);
+}
+
+// Always include all 15 constellations as canonical argument nodes.
+for (const c of CONSTELLATIONS) {
+  nodes.push({
+    id: `arg:${c.slug}`,
+    label: c.shortName,
+    type: 'argument',
+    slug: c.slug,
+    hue: c.hue,
+  });
+}
+
+// Edge between every pair of arguments in the same category, plus any
+// author-asserted relatedArguments coming from Sanity.
+const slugByCategory = new Map<string, string[]>();
+for (const c of CONSTELLATIONS) {
+  const arr = slugByCategory.get(c.category) ?? [];
+  arr.push(c.slug);
+  slugByCategory.set(c.category, arr);
+}
+for (const slugs of slugByCategory.values()) {
+  for (let i = 0; i < slugs.length; i++) {
+    for (let j = i + 1; j < slugs.length; j++) {
+      edges.push({ source: `arg:${slugs[i]}`, target: `arg:${slugs[j]}` });
+    }
+  }
+}
+
+for (const link of graph.argumentLinks ?? []) {
+  const sourceSlug = sanityArgIdToSlug.get(link._id);
+  if (!sourceSlug) continue;
+  for (const refId of link.argRefs ?? []) {
+    const targetSlug = sanityArgIdToSlug.get(refId);
+    if (targetSlug && targetSlug !== sourceSlug) {
+      edges.push({ source: `arg:${sourceSlug}`, target: `arg:${targetSlug}` });
+    }
+  }
+}
+
+function pushSanityNodes<T extends SanityRef>(
+  items: T[] | undefined,
+  type: KnowledgeNode['type'],
+  prefix: string,
+  labelOf: (item: T) => string,
+) {
+  for (const item of items ?? []) {
+    if (!item.slug) continue;
+    const id = `${prefix}:${item.slug}`;
+    nodes.push({ id, label: labelOf(item), type, slug: item.slug });
+    for (const argId of item.argRefs ?? []) {
+      const argSlug = sanityArgIdToSlug.get(argId);
+      if (argSlug) edges.push({ source: id, target: `arg:${argSlug}` });
+    }
+  }
+}
+
+pushSanityNodes(graph.testimonies, 'testimony', 'tst', t => t.personName);
+pushSanityNodes(graph.saints, 'saint', 'st', s => s.name);
+pushSanityNodes(graph.miracles, 'miracle', 'mir', m => m.title);
+pushSanityNodes(graph.famousPeople, 'famousPerson', 'fp', p => p.name);
+
+const hasSanityNodes = nodes.length > 15;
+---
+
+<BaseLayout
+  title="Mapa wiedzy · Dlatego Wierzę"
+  description="Interaktywny graf powiązań między 15 konstelacjami argumentacji a&nbsp;dodanymi świadectwami, świętymi i&nbsp;cudami. Kliknij dowolny węzeł, by przejść do strony tematu."
+>
+  <section class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+    <p class="font-mono text-xs uppercase tracking-[0.3em] text-primary/80 mb-3">Mapa wiedzy</p>
+    <h1 class="font-serif text-4xl sm:text-5xl lg:text-6xl leading-tight mb-4">
+      Sieć rozumnych powodów
+    </h1>
+    <p class="text-base sm:text-lg text-muted-foreground max-w-3xl mb-10 [text-wrap:pretty]">
+      Każdy złoty węzeł to jedna z&nbsp;15 konstelacji. Mniejsze, kolorowe węzły to świadectwa,
+      święci, cuda i&nbsp;sławne osoby powiązane z&nbsp;poszczególnymi argumentami. Krawędzie pokazują
+      pokrewieństwo tematyczne. Kliknij dowolny węzeł, żeby przejść do jego strony.
+    </p>
+
+    <KnowledgeMap nodes={nodes} edges={edges} client:only="react" />
+
+    {!hasSanityNodes && (
+      <p class="mt-6 text-sm text-muted-foreground/80 max-w-3xl [text-wrap:pretty]">
+        Sieć urośnie automatycznie wraz z&nbsp;dodawaniem treści w&nbsp;<a href="/admin" class="text-primary hover:opacity-80" rel="nofollow">panelu redakcyjnym</a>
+        — każde świadectwo, święty, cud czy sławna osoba zostanie połączony z&nbsp;tymi
+        konstelacjami, które wskażesz w&nbsp;polu „Powiązane argumenty".
+      </p>
+    )}
+  </section>
+</BaseLayout>

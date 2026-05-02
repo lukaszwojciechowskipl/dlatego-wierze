@@ -1,4 +1,4 @@
-import { type RefObject, useRef, useMemo, useState } from 'react';
+import { useRef, useMemo, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Sparkles, Html } from '@react-three/drei';
 import { Group, Vector3 } from 'three';
@@ -12,10 +12,6 @@ interface Props {
   active: boolean;
   showLabels: boolean;
   reducedSparkles: boolean;
-  /** Set true while the user is dragging the camera. Pointer-up that
-   *  arrives during a drag is treated as the end of the drag, not a
-   *  navigation click. */
-  isDraggingRef: RefObject<boolean>;
 }
 
 export default function ConstellationNode({
@@ -26,7 +22,6 @@ export default function ConstellationNode({
   active,
   showLabels,
   reducedSparkles,
-  isDraggingRef,
 }: Props) {
   const groupRef = useRef<Group>(null);
   const [hovered, setHovered] = useState(false);
@@ -55,17 +50,22 @@ export default function ConstellationNode({
     <group ref={groupRef} position={position}>
       <Sparkles
         count={sparkleCount}
-        scale={2.6}
-        size={hovered || active ? 8 : 5}
+        scale={3.6}
+        size={hovered || active ? 12 : 8}
         speed={0.45}
         color={color}
-        opacity={0.88}
+        opacity={0.92}
       />
-      {/* Brighter core — slightly larger for visibility on small screens
-          while keeping the constellation feel of "a star, not a planet". */}
+      {/* Glowing core — large enough to be unambiguously clickable on
+          desktop without erasing the "star, not planet" feel. */}
       <mesh>
-        <sphereGeometry args={[0.26, 20, 20]} />
+        <sphereGeometry args={[0.45, 24, 24]} />
         <meshBasicMaterial color={color} toneMapped={false} />
+      </mesh>
+      {/* Soft halo — gives the core depth and visual gravity */}
+      <mesh>
+        <sphereGeometry args={[0.85, 24, 24]} />
+        <meshBasicMaterial color={color} transparent opacity={0.14} toneMapped={false} />
       </mesh>
       {/* Invisible click target — also runs the drag/click discrimination */}
       <mesh
@@ -92,18 +92,20 @@ export default function ConstellationNode({
           }
         }}
         onPointerUp={(e) => {
-          // Only count as a click if (a) the user didn't drag this pointer,
-          // and (b) the OrbitControls aren't reporting a global drag from
-          // a different starting target.
-          const localDrag = wasDragged.current;
+          // Only count as a click if the user didn't move the pointer
+          // appreciably while it was on this constellation. The earlier
+          // global OrbitControls drag flag was too aggressive — every
+          // pointerdown bubbles to OrbitControls, so the global flag
+          // was set even on a stationary tap, blocking every navigation.
+          const dragged = wasDragged.current;
           downXY.current = null;
           wasDragged.current = false;
-          if (localDrag || isDraggingRef.current) return;
+          if (dragged) return;
           e.stopPropagation();
           onSelect(c);
         }}
       >
-        <sphereGeometry args={[1.6, 12, 12]} />
+        <sphereGeometry args={[2.2, 12, 12]} />
         <meshBasicMaterial transparent opacity={0} />
       </mesh>
       {/* HTML overlay label — lives outside the WebGL depth buffer, so it can
@@ -111,9 +113,9 @@ export default function ConstellationNode({
           angle. distanceFactor keeps it 3D-scaled with the scene. */}
       {showLabels && (
         <Html
-          position={[0, 0.7, 0]}
+          position={[0, 1, 0]}
           center
-          distanceFactor={9}
+          distanceFactor={6}
           zIndexRange={[100, 0]}
           pointerEvents="none"
         >
@@ -121,12 +123,12 @@ export default function ConstellationNode({
             style={{
               color: hovered || active ? color : '#f5f1e8',
               fontWeight: 600,
-              fontSize: hovered || active ? '0.95rem' : '0.7rem',
-              letterSpacing: '-0.01em',
-              opacity: hovered || active ? 1 : 0.78,
+              fontSize: hovered || active ? '1.25rem' : '0.95rem',
+              letterSpacing: '-0.015em',
+              opacity: hovered || active ? 1 : 0.85,
               whiteSpace: 'nowrap',
               textShadow:
-                '0 1px 2px rgba(10,14,39,0.95), 0 0 8px rgba(10,14,39,0.85)',
+                '0 1px 3px rgba(10,14,39,0.98), 0 0 12px rgba(10,14,39,0.9)',
               fontFamily:
                 "'Inter Variable', system-ui, -apple-system, sans-serif",
               transition: 'font-size 180ms ease, color 180ms ease, opacity 180ms ease',

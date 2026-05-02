@@ -1,4 +1,6 @@
 ---
+import { CONSTELLATIONS } from '@/lib/constants';
+
 interface NavLink {
   href: string;
   label: string;
@@ -6,7 +8,6 @@ interface NavLink {
 
 const links: NavLink[] = [
   { href: '/', label: 'Start' },
-  { href: '/argumenty/filozofia', label: '15 Argumentów' },
   { href: '/swiadectwa', label: 'Świadectwa' },
   { href: '/swieci', label: 'Święci' },
   { href: '/slawne-osoby', label: 'Sławne osoby' },
@@ -15,18 +16,86 @@ const links: NavLink[] = [
   { href: '/o-projekcie', label: 'O projekcie' },
 ];
 
+const reasonPlanets = CONSTELLATIONS.filter(c => c.category === 'rozum');
+const experiencePlanets = CONSTELLATIONS.filter(c => c.category === 'doswiadczenie');
 const currentPath = Astro.url.pathname;
+const inArguments = currentPath.startsWith('/argumenty');
 ---
 
+<!-- DESKTOP -->
 <nav class="hidden md:flex items-center gap-1 text-sm">
-  {links.map((link) => {
+  <a
+    href="/"
+    class:list={[
+      'px-3 py-2 rounded-md transition-colors hover:bg-secondary/40 hover:text-primary',
+      currentPath === '/' && 'text-primary bg-secondary/30',
+    ]}
+  >
+    Start
+  </a>
+
+  <!-- 15 Argumentów dropdown — pure CSS via group-hover, JS-free -->
+  <div class="relative group">
+    <button
+      type="button"
+      class:list={[
+        'inline-flex items-center gap-1 px-3 py-2 rounded-md transition-colors hover:bg-secondary/40 hover:text-primary',
+        inArguments && 'text-primary bg-secondary/30',
+      ]}
+      aria-haspopup="true"
+    >
+      15 Argumentów
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="opacity-60 transition-transform group-hover:rotate-180">
+        <path d="m6 9 6 6 6-6"/>
+      </svg>
+    </button>
+
+    <div class="invisible opacity-0 group-hover:visible group-hover:opacity-100 absolute left-1/2 -translate-x-1/2 top-full pt-2 transition-opacity duration-150 z-50">
+      <div class="grid grid-cols-2 gap-6 min-w-[640px] rounded-xl border border-border/60 bg-card/95 backdrop-blur-md p-5 shadow-2xl">
+        <div>
+          <p class="font-mono text-[10px] uppercase tracking-[0.3em] text-primary/85 mb-3">Rozum</p>
+          <ul class="space-y-0.5">
+            {reasonPlanets.map((c) => (
+              <li>
+                <a
+                  href={`/argumenty/${c.slug}`}
+                  class="flex items-baseline gap-2 px-2 py-1.5 rounded-md text-sm hover:bg-secondary/50 hover:text-primary transition-colors"
+                >
+                  <span class="inline-block w-1.5 h-1.5 rounded-full shrink-0 mt-1.5" style={`background: ${c.colorHsl}`}></span>
+                  <span>{c.shortName}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <p class="font-mono text-[10px] uppercase tracking-[0.3em] text-primary/85 mb-3">Doświadczenie</p>
+          <ul class="space-y-0.5">
+            {experiencePlanets.map((c) => (
+              <li>
+                <a
+                  href={`/argumenty/${c.slug}`}
+                  class="flex items-baseline gap-2 px-2 py-1.5 rounded-md text-sm hover:bg-secondary/50 hover:text-primary transition-colors"
+                >
+                  <span class="inline-block w-1.5 h-1.5 rounded-full shrink-0 mt-1.5" style={`background: ${c.colorHsl}`}></span>
+                  <span>{c.shortName}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {links.slice(1).map((link) => {
     const active = currentPath === link.href || (link.href !== '/' && currentPath.startsWith(link.href));
     return (
       <a
         href={link.href}
         class:list={[
           'px-3 py-2 rounded-md transition-colors hover:bg-secondary/40 hover:text-primary',
-          active && 'text-primary bg-secondary/30'
+          active && 'text-primary bg-secondary/30',
         ]}
       >
         {link.label}
@@ -35,6 +104,7 @@ const currentPath = Astro.url.pathname;
   })}
 </nav>
 
+<!-- MOBILE -->
 <details class="md:hidden">
   <summary class="list-none cursor-pointer p-2 rounded-md hover:bg-secondary/40">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Menu">
@@ -43,9 +113,42 @@ const currentPath = Astro.url.pathname;
       <line x1="3" y1="18" x2="21" y2="18"/>
     </svg>
   </summary>
-  <div class="absolute left-0 right-0 top-full mt-2 mx-4 rounded-lg border border-border bg-card/95 backdrop-blur-sm p-2 shadow-xl z-50">
-    {links.map((link) => (
-      <a href={link.href} class="block px-3 py-2.5 rounded-md text-sm hover:bg-secondary/40 hover:text-primary">
+  <div class="absolute left-0 right-0 top-full mt-2 mx-4 rounded-lg border border-border bg-card/95 backdrop-blur-sm p-3 shadow-xl z-50 max-h-[80vh] overflow-y-auto">
+    <a href="/" class="block px-3 py-2 rounded-md text-sm hover:bg-secondary/40 hover:text-primary">Start</a>
+
+    <details class="mt-1">
+      <summary class="cursor-pointer list-none px-3 py-2 rounded-md text-sm hover:bg-secondary/40 flex items-center justify-between">
+        15 Argumentów
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="opacity-60">
+          <path d="m6 9 6 6 6-6"/>
+        </svg>
+      </summary>
+      <div class="pl-3 mt-1 space-y-2">
+        <p class="font-mono text-[10px] uppercase tracking-[0.3em] text-primary/85 mt-2 px-2">Rozum</p>
+        {reasonPlanets.map((c) => (
+          <a
+            href={`/argumenty/${c.slug}`}
+            class="flex items-baseline gap-2 px-2 py-1.5 rounded-md text-xs hover:bg-secondary/40 hover:text-primary"
+          >
+            <span class="inline-block w-1.5 h-1.5 rounded-full shrink-0 mt-1" style={`background: ${c.colorHsl}`}></span>
+            <span>{c.shortName}</span>
+          </a>
+        ))}
+        <p class="font-mono text-[10px] uppercase tracking-[0.3em] text-primary/85 mt-2 px-2">Doświadczenie</p>
+        {experiencePlanets.map((c) => (
+          <a
+            href={`/argumenty/${c.slug}`}
+            class="flex items-baseline gap-2 px-2 py-1.5 rounded-md text-xs hover:bg-secondary/40 hover:text-primary"
+          >
+            <span class="inline-block w-1.5 h-1.5 rounded-full shrink-0 mt-1" style={`background: ${c.colorHsl}`}></span>
+            <span>{c.shortName}</span>
+          </a>
+        ))}
+      </div>
+    </details>
+
+    {links.slice(1).map((link) => (
+      <a href={link.href} class="block px-3 py-2 rounded-md text-sm hover:bg-secondary/40 hover:text-primary">
         {link.label}
       </a>
     ))}

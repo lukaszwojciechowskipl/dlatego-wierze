@@ -1,16 +1,9 @@
-import { Suspense, useEffect, useRef, useState, type RefObject } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Stars } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { CONSTELLATIONS, type Constellation } from '@/lib/constants';
 import ConstellationNode from './ConstellationNode';
-
-// Minimal shape we use from the OrbitControls instance — avoids pulling in
-// `three-stdlib` just for the type.
-interface OrbitControlsLike {
-  addEventListener(event: 'start' | 'end' | 'change', handler: () => void): void;
-  removeEventListener(event: 'start' | 'end' | 'change', handler: () => void): void;
-}
 
 interface GalaxyState {
   isMobile: boolean;
@@ -49,36 +42,13 @@ function GalaxyScene({
   reducedMotion,
   onHover,
   hovered,
-  isDraggingRef,
 }: {
   isMobile: boolean;
   reducedMotion: boolean;
   onHover: (c: Constellation | null) => void;
   hovered: Constellation | null;
-  isDraggingRef: RefObject<boolean>;
 }) {
   const radius = 10;
-  const orbitRef = useRef<OrbitControlsLike>(null);
-
-  // Wire the OrbitControls 'start' / 'end' events into our shared drag flag
-  // so a drag-then-release on a constellation isn't mistaken for a click.
-  useEffect(() => {
-    const controls = orbitRef.current;
-    if (!controls) return;
-    const onStart = () => { isDraggingRef.current = true; };
-    const onEnd = () => {
-      // Clear on the next macrotask so any pointerup that arrives at a
-      // constellation in the same flush still sees the drag flag set.
-      window.setTimeout(() => { isDraggingRef.current = false; }, 80);
-    };
-    controls.addEventListener('start', onStart);
-    controls.addEventListener('end', onEnd);
-    return () => {
-      controls.removeEventListener('start', onStart);
-      controls.removeEventListener('end', onEnd);
-    };
-  }, [isDraggingRef]);
-
   const handleSelect = (c: Constellation) => {
     window.location.href = `/argumenty/${c.slug}`;
   };
@@ -105,11 +75,9 @@ function GalaxyScene({
           active={hovered?.id === c.id}
           showLabels
           reducedSparkles={isMobile}
-          isDraggingRef={isDraggingRef}
         />
       ))}
       <OrbitControls
-        ref={orbitRef as never}
         enableZoom={false}
         enablePan={false}
         autoRotate={!reducedMotion}
@@ -132,7 +100,6 @@ function GalaxyScene({
 export default function Galaxy() {
   const { isMobile, reducedMotion, ready } = useViewportState();
   const [hovered, setHovered] = useState<Constellation | null>(null);
-  const isDraggingRef = useRef(false);
 
   if (!ready) return null;
 
@@ -149,7 +116,6 @@ export default function Galaxy() {
             reducedMotion={reducedMotion}
             onHover={setHovered}
             hovered={hovered}
-            isDraggingRef={isDraggingRef}
           />
         </Suspense>
       </Canvas>

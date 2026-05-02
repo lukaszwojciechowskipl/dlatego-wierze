@@ -28,65 +28,83 @@ try {
   testimonies = (await sanityClient.fetch(RECENT_TESTIMONIES, { limit: 6 })) ?? [];
   miracles = (await sanityClient.fetch(RECENT_MIRACLES, { limit: 3 })) ?? [];
 } catch (err) {
-  // Sanity unavailable / dataset empty — fall back to empty highlights.
   console.warn('[home] Sanity highlights skipped:', err);
 }
 ---
 
 <BaseLayout>
-  <!-- HERO: R3F galaxy + static fallback overlay -->
-  <section class="relative min-h-[100svh] flex items-end overflow-hidden -mt-14 pt-14">
-    <!-- Static CSS starfield as instant paint + fallback for no-WebGL/reduced-motion -->
+  <!-- HERO: full-bleed interactive starscape; copy stays out of the centre so
+       the constellations are obviously the primary affordance. -->
+  <section class="relative h-[calc(100svh-3.5rem)] min-h-[560px] overflow-hidden -mt-14 pt-14">
+    <!-- Static CSS starfield as the instant paint + non-WebGL fallback -->
     <HeroFallback />
 
-    <!-- Live R3F galaxy hydrates over the fallback once JS is ready -->
+    <!-- R3F galaxy hydrates over the fallback once JS is ready -->
     <Galaxy client:only="react" />
 
-    <!-- Vignette to keep text readable -->
-    <div aria-hidden="true" class="absolute inset-0 pointer-events-none bg-gradient-to-b from-background/40 via-transparent to-background/95"></div>
+    <!-- Soft vignette so corner overlays remain readable, but the hot zone
+         in the middle stays clean for the constellations. -->
+    <div aria-hidden="true" class="absolute inset-x-0 top-0 h-32 pointer-events-none bg-gradient-to-b from-background/60 to-transparent"></div>
+    <div aria-hidden="true" class="absolute inset-x-0 bottom-0 h-56 pointer-events-none bg-gradient-to-t from-background/85 via-background/40 to-transparent"></div>
 
-    <!-- Foreground content -->
-    <div class="relative w-full pb-16 lg:pb-24">
-      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <p class="font-mono text-xs uppercase tracking-[0.3em] text-primary/85 mb-6">
-          15 konstelacji · jedna prawda
-        </p>
-        <h1 class="font-serif text-5xl sm:text-6xl lg:text-7xl xl:text-8xl leading-[1.05] mb-6 [text-wrap:balance]">
-          Dlatego <span class="text-primary">Wierzę</span>
-        </h1>
-        <p class="text-lg sm:text-xl text-foreground/85 max-w-2xl mx-auto leading-relaxed [text-wrap:pretty]">
-          Galaktyka piętnastu niezależnych linii argumentacji za prawdziwością chrześcijaństwa.
-          Filozofia, nauka, historia, świadectwa, cuda — w&nbsp;jednym miejscu.
-        </p>
-        <div class="mt-10 flex flex-wrap justify-center gap-3">
-          <a
-            href="/argumenty/filozofia"
-            class="inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-6 py-3 text-sm font-medium hover:opacity-90 transition-opacity"
-          >
-            Wejdź w&nbsp;galaktykę
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M5 12h14M13 5l7 7-7 7"/>
-            </svg>
-          </a>
-          <a
-            href="/o-projekcie"
-            class="inline-flex items-center gap-2 rounded-full border border-border/80 bg-background/40 backdrop-blur px-6 py-3 text-sm font-medium hover:bg-secondary/40 transition-colors"
-          >
-            O&nbsp;projekcie
-          </a>
-        </div>
+    <!-- BOTTOM-LEFT: small headline + brand mark, never crosses the gravity well -->
+    <div class="absolute bottom-6 left-4 sm:bottom-8 sm:left-8 max-w-md pointer-events-none">
+      <p class="font-mono text-[10px] sm:text-xs uppercase tracking-[0.32em] text-primary/85 mb-2">
+        Dlatego wierzę · 15 powodów
+      </p>
+      <h1 class="font-serif text-2xl sm:text-3xl lg:text-4xl leading-[1.1] [text-wrap:balance]">
+        Każdy z&nbsp;piętnastu argumentów stoi <span class="text-primary">na własnych nogach</span>.
+      </h1>
+      <p class="hidden sm:block text-sm text-muted-foreground mt-3 max-w-sm leading-relaxed">
+        Filozofia, nauka, historia, świadectwa, cuda — niezależne linie prowadzące do tej samej rzeczywistości.
+      </p>
+      <div class="mt-5 flex flex-wrap gap-2 pointer-events-auto">
+        <a
+          href="/argumenty/filozofia"
+          class="inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-5 py-2.5 text-sm font-medium hover:opacity-90 transition-opacity"
+        >
+          Pierwszy argument
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14M13 5l7 7-7 7"/>
+          </svg>
+        </a>
+        <a
+          href="#mapa"
+          class="inline-flex items-center gap-2 rounded-full border border-border/80 bg-background/40 backdrop-blur px-5 py-2.5 text-sm hover:bg-secondary/40 transition-colors"
+        >
+          Pokaż listę 15
+        </a>
       </div>
     </div>
+
+    <!-- TOP-RIGHT: subtle hint about the interaction, doesn't fight any other UI -->
+    <div class="hidden sm:flex absolute top-20 right-6 items-center gap-2 text-xs text-muted-foreground/80 pointer-events-none">
+      <span class="hint-pulse inline-block w-1.5 h-1.5 rounded-full bg-primary"></span>
+      <span>najedź na gwiazdę albo ją kliknij</span>
+    </div>
+
+    <style>
+      .hint-pulse {
+        animation: hint-pulse 2.4s ease-in-out infinite;
+      }
+      @keyframes hint-pulse {
+        0%, 100% { opacity: 0.4; transform: scale(1); }
+        50%      { opacity: 1;   transform: scale(1.6); box-shadow: 0 0 12px var(--color-cosmos-gold); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .hint-pulse { animation: none; opacity: 1; }
+      }
+    </style>
   </section>
 
-  <!-- BENTO MAP — 15 constellations as cards -->
-  <section class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
+  <!-- LIST: 15 constellations as cards. Reachable via #mapa from the hero CTA. -->
+  <section id="mapa" class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 lg:py-24 scroll-mt-16">
     <div class="mb-10 max-w-3xl">
-      <p class="font-mono text-xs uppercase tracking-[0.3em] text-primary/80 mb-3">15 konstelacji</p>
-      <h2 class="font-serif text-3xl sm:text-4xl lg:text-5xl mb-4 [text-wrap:balance]">Mapa rozumnych powodów</h2>
+      <p class="font-mono text-xs uppercase tracking-[0.3em] text-primary/80 mb-3">15 niezależnych linii</p>
+      <h2 class="font-serif text-3xl sm:text-4xl lg:text-5xl mb-4 [text-wrap:balance]">Argumenty po kolei</h2>
       <p class="text-muted-foreground leading-relaxed [text-wrap:pretty]">
-        Każda konstelacja to osobna, samowystarczalna linia argumentacji. Możesz wejść w&nbsp;dowolną
-        — żadna nie zależy od pozostałych, ale razem tworzą galaktykę spójnych dowodów.
+        Każdy z&nbsp;15 argumentów to osobna, samowystarczalna linia. Możesz wejść w&nbsp;dowolną
+        — nie musisz czytać po kolei.
       </p>
     </div>
 
@@ -105,7 +123,7 @@ try {
             ></div>
             <div class="relative">
               <p class="font-mono text-[10px] uppercase tracking-widest opacity-50 mb-2">
-                Konstelacja {String(c.id).padStart(2, '0')} · {c.category}
+                {String(c.id).padStart(2, '0')} · {c.category}
               </p>
               <h3 class="font-serif text-lg leading-tight mb-2" style="color: var(--accent)">
                 {c.shortName}
@@ -126,21 +144,17 @@ try {
     </ul>
   </section>
 
-  <!-- HIGHLIGHTS: latest testimonies + miracles from Sanity -->
+  <!-- HIGHLIGHTS -->
   {(testimonies.length > 0 || miracles.length > 0) && (
     <section class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-16 lg:pb-24 grid gap-10 lg:grid-cols-2">
       {testimonies.length > 0 && (
         <div>
           <div class="flex items-end justify-between mb-6">
             <div>
-              <p class="font-mono text-xs uppercase tracking-[0.3em] text-primary/80 mb-2">
-                Świadectwa
-              </p>
+              <p class="font-mono text-xs uppercase tracking-[0.3em] text-primary/80 mb-2">Świadectwa</p>
               <h2 class="font-serif text-2xl sm:text-3xl">Najnowsze opowieści wiary</h2>
             </div>
-            <a href="/swiadectwa" class="text-xs text-muted-foreground hover:text-primary">
-              Wszystkie →
-            </a>
+            <a href="/swiadectwa" class="text-xs text-muted-foreground hover:text-primary">Wszystkie →</a>
           </div>
           <ul class="space-y-3">
             {testimonies.map((t) => (
@@ -154,9 +168,7 @@ try {
                     {t.kind && <span class="text-[10px] uppercase tracking-widest text-primary/70">{t.kind}</span>}
                   </div>
                   {t.shortSummary && (
-                    <p class="text-sm text-muted-foreground mt-1 line-clamp-2 [text-wrap:pretty]">
-                      {t.shortSummary}
-                    </p>
+                    <p class="text-sm text-muted-foreground mt-1 line-clamp-2 [text-wrap:pretty]">{t.shortSummary}</p>
                   )}
                 </a>
               </li>
@@ -169,14 +181,10 @@ try {
         <div>
           <div class="flex items-end justify-between mb-6">
             <div>
-              <p class="font-mono text-xs uppercase tracking-[0.3em] text-primary/80 mb-2">
-                Cuda
-              </p>
+              <p class="font-mono text-xs uppercase tracking-[0.3em] text-primary/80 mb-2">Cuda</p>
               <h2 class="font-serif text-2xl sm:text-3xl">Najnowsze cuda</h2>
             </div>
-            <a href="/cuda-eucharystyczne" class="text-xs text-muted-foreground hover:text-primary">
-              Wszystkie →
-            </a>
+            <a href="/cuda-eucharystyczne" class="text-xs text-muted-foreground hover:text-primary">Wszystkie →</a>
           </div>
           <ul class="space-y-3">
             {miracles.map((m) => (
@@ -199,7 +207,6 @@ try {
     </section>
   )}
 
-  <!-- Empty state — kept for when Sanity has no content yet -->
   {testimonies.length === 0 && miracles.length === 0 && (
     <section class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-20">
       <div class="rounded-2xl border border-border/40 bg-gradient-to-br from-card/60 to-card/20 p-8 lg:p-12 text-center">

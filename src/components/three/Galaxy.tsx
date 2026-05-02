@@ -73,7 +73,7 @@ function GalaxyScene({
           onSelect={handleSelect}
           onHover={onHover}
           active={hovered?.id === c.id}
-          showLabels={!isMobile}
+          showLabels
           reducedSparkles={isMobile}
         />
       ))}
@@ -120,16 +120,22 @@ export default function Galaxy() {
         </Suspense>
       </Canvas>
 
-      {/* Floating tooltip outside canvas, follows pointer via CSS variable */}
+      {/* Hover preview — pinned to the bottom-right corner so it never collides
+          with the headline overlay in the bottom-left. */}
       {hovered && (
         <div
-          className="pointer-events-none absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full border border-border/60 bg-background/85 backdrop-blur text-sm text-center max-w-[88vw]"
-          style={{ borderColor: `hsl(${hovered.hue} 70% 55% / 0.6)` }}
+          className="pointer-events-none absolute bottom-6 right-4 sm:right-6 max-w-[280px] rounded-xl border border-border/60 bg-background/90 backdrop-blur px-4 py-3 shadow-2xl"
+          style={{ borderColor: `hsl(${hovered.hue} 70% 55% / 0.55)` }}
         >
           <p className="font-mono text-[10px] uppercase tracking-widest opacity-60">
-            Konstelacja {String(hovered.id).padStart(2, '0')}
+            Konstelacja {String(hovered.id).padStart(2, '0')} · kliknij, by przeczytać
           </p>
-          <p className="font-serif text-base">{hovered.shortName}</p>
+          <p className="font-serif text-base mt-0.5" style={{ color: `hsl(${hovered.hue} 70% 70%)` }}>
+            {hovered.shortName}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1.5 leading-snug line-clamp-3">
+            {hovered.teaser}
+          </p>
         </div>
       )}
     </div>

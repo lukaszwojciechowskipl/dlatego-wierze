@@ -85,15 +85,16 @@ export default function ConstellationNode({
         <sphereGeometry args={[1.6, 12, 12]} />
         <meshBasicMaterial transparent opacity={0} />
       </mesh>
-      {showLabels && (hovered || active) && (
-        <Billboard position={[0, 1.2, 0]}>
+      {showLabels && (
+        <Billboard position={[0, 1.1, 0]}>
           <Text
-            fontSize={0.35}
-            color="white"
+            fontSize={hovered || active ? 0.42 : 0.32}
+            color={hovered || active ? color : 'white'}
             anchorX="center"
             anchorY="bottom"
-            outlineWidth={0.015}
+            outlineWidth={0.018}
             outlineColor="#0a0e27"
+            fillOpacity={hovered || active ? 1 : 0.75}
           >
             {c.shortName}
           </Text>

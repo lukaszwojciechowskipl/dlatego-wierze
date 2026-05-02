@@ -1,0 +1,140 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PortableText from '@/components/content/PortableText.astro';
+import { sanityClient, urlFor } from '@/lib/sanity';
+import { ALL_SAINTS, SAINT_BY_SLUG } from '@/lib/queries';
+
+interface Quote { pl?: string; source?: string }
+interface SaintDoc {
+  _id: string;
+  name: string;
+  slug: { current: string };
+  rank?: string;
+  birthYear?: number;
+  deathYear?: number;
+  feastDay?: string;
+  patronOf?: string[];
+  incorrupt?: boolean;
+  stigmata?: boolean;
+  bilocation?: boolean;
+  portrait?: { asset?: { _ref: string } };
+  shortBio?: string;
+  fullBio?: unknown;
+  famousQuotes?: Quote[];
+  relatedArguments?: Array<{ _id: string; title: string; slug: string }>;
+}
+
+export async function getStaticPaths() {
+  let list: Array<{ slug: string }> = [];
+  try {
+    list = (await sanityClient.fetch(ALL_SAINTS)) ?? [];
+  } catch {
+    list = [];
+  }
+  return list.filter(s => typeof s.slug === 'string').map(s => ({ params: { slug: s.slug } }));
+}
+
+const { slug } = Astro.params;
+let doc: SaintDoc | null = null;
+try {
+  doc = await sanityClient.fetch(SAINT_BY_SLUG, { slug });
+} catch (err) {
+  console.warn(`[swieci/${slug}] sanity fetch failed:`, err);
+}
+
+if (!doc) return Astro.redirect('/swieci', 302);
+
+const RANK_LABELS: Record<string, string> = {
+  swiety: 'Święty',
+  blogoslawiony: 'Błogosławiony',
+  'sluga-bozy': 'Sługa Boży',
+  czcigodny: 'Czcigodny',
+};
+---
+
+<BaseLayout
+  title={`${doc.name} · Dlatego Wierzę`}
+  description={doc.shortBio ?? doc.name}
+>
+  <article class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+    <a href="/swieci" class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-8">
+      ← Powrót do galerii świętych
+    </a>
+
+    <div class="grid lg:grid-cols-[18rem_1fr] gap-10">
+      <aside class="space-y-4">
+        {doc.portrait?.asset && (
+          <img
+            src={urlFor(doc.portrait).width(720).quality(80).auto('format').url()}
+            alt={doc.name}
+            class="w-full rounded-xl border border-border/40"
+          />
+        )}
+        <dl class="text-sm space-y-2 text-muted-foreground">
+          {doc.rank && (
+            <div>
+              <dt class="text-xs uppercase tracking-widest opacity-60">Stopień</dt>
+              <dd class="text-foreground">{RANK_LABELS[doc.rank] ?? doc.rank}</dd>
+            </div>
+          )}
+          {(doc.birthYear || doc.deathYear) && (
+            <div>
+              <dt class="text-xs uppercase tracking-widest opacity-60">Lata życia</dt>
+              <dd class="text-foreground">{doc.birthYear ?? '?'} — {doc.deathYear ?? '?'}</dd>
+            </div>
+          )}
+          {doc.feastDay && (
+            <div>
+              <dt class="text-xs uppercase tracking-widest opacity-60">Wspomnienie</dt>
+              <dd class="text-foreground">{doc.feastDay}</dd>
+            </div>
+          )}
+          {doc.patronOf && doc.patronOf.length > 0 && (
+            <div>
+              <dt class="text-xs uppercase tracking-widest opacity-60">Patron</dt>
+              <dd class="text-foreground">{doc.patronOf.join(', ')}</dd>
+            </div>
+          )}
+        </dl>
+        <div class="flex flex-wrap gap-2 pt-4 border-t border-border/40">
+          {doc.incorrupt && <span class="text-xs px-2 py-1 rounded-full border border-primary/40 text-primary/90">nierozłożone ciało</span>}
+          {doc.stigmata && <span class="text-xs px-2 py-1 rounded-full border border-primary/40 text-primary/90">stygmaty</span>}
+          {doc.bilocation && <span class="text-xs px-2 py-1 rounded-full border border-primary/40 text-primary/90">bilokacja</span>}
+        </div>
+      </aside>
+
+      <main>
+        <h1 class="font-serif text-4xl sm:text-5xl leading-tight mb-3">{doc.name}</h1>
+        {doc.shortBio && <p class="text-lg text-muted-foreground mb-8 [text-wrap:pretty]">{doc.shortBio}</p>}
+        {doc.fullBio ? <PortableText value={doc.fullBio as never} /> : <p class="text-muted-foreground italic">Pełna biografia jeszcze nie została dodana.</p>}
+
+        {doc.famousQuotes && doc.famousQuotes.length > 0 && (
+          <div class="mt-12 space-y-6">
+            <p class="font-mono text-xs uppercase tracking-[0.3em] text-primary/80">Słynne cytaty</p>
+            {doc.famousQuotes.map((q) => (
+              <figure>
+                <blockquote class="border-l-4 border-primary/60 pl-5 font-serif text-lg italic">{q.pl}</blockquote>
+                {q.source && <figcaption class="mt-2 pl-5 text-sm text-muted-foreground">— {q.source}</figcaption>}
+              </figure>
+            ))}
+          </div>
+        )}
+
+        {doc.relatedArguments && doc.relatedArguments.length > 0 && (
+          <div class="mt-12 pt-8 border-t border-border/40">
+            <p class="font-mono text-xs uppercase tracking-[0.3em] text-primary/80 mb-3">Powiązane argumenty</p>
+            <ul class="grid sm:grid-cols-2 gap-3">
+              {doc.relatedArguments.map((a) => (
+                <li>
+                  <a href={`/argumenty/${a.slug}`} class="block rounded-lg border border-border/40 bg-card/30 p-4 hover:bg-card/70">
+                    <p class="font-medium">{a.title}</p>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </main>
+    </div>
+  </article>
+</BaseLayout>

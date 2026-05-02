@@ -1,0 +1,120 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PortableText from '@/components/content/PortableText.astro';
+import { sanityClient, urlFor } from '@/lib/sanity';
+import { ALL_MIRACLES, MIRACLE_BY_SLUG } from '@/lib/queries';
+
+interface MiracleDoc {
+  _id: string;
+  title: string;
+  slug: { current: string };
+  kind?: string;
+  year?: number;
+  place?: string;
+  location?: { lat: number; lng: number };
+  denomination?: string;
+  shortDescription?: string;
+  scientificAnalysis?: unknown;
+  fullStory?: unknown;
+  gallery?: Array<{ asset?: { _ref: string }; alt?: string }>;
+  sources?: Array<{ title?: string; url?: string }>;
+  verifiedBy?: string;
+  relatedArguments?: Array<{ _id: string; title: string; slug: string }>;
+}
+
+export async function getStaticPaths() {
+  let list: Array<{ slug: string }> = [];
+  try {
+    list = (await sanityClient.fetch(ALL_MIRACLES)) ?? [];
+  } catch {
+    list = [];
+  }
+  return list.filter(m => typeof m.slug === 'string').map(m => ({ params: { slug: m.slug } }));
+}
+
+const { slug } = Astro.params;
+let doc: MiracleDoc | null = null;
+try {
+  doc = await sanityClient.fetch(MIRACLE_BY_SLUG, { slug });
+} catch (err) {
+  console.warn(`[cuda-eucharystyczne/${slug}] sanity fetch failed:`, err);
+}
+if (!doc) return Astro.redirect('/cuda-eucharystyczne', 302);
+---
+
+<BaseLayout title={`${doc.title} · Dlatego Wierzę`} description={doc.shortDescription ?? doc.title}>
+  <article class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+    <a href="/cuda-eucharystyczne" class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-8">
+      ← Powrót do osi czasu
+    </a>
+
+    <header class="mb-10">
+      <p class="font-mono text-xs uppercase tracking-[0.3em] text-primary/80 mb-3">Cud {doc.kind ?? ''}</p>
+      <h1 class="font-serif text-4xl sm:text-5xl leading-tight mb-4 max-w-4xl">{doc.title}</h1>
+      <dl class="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
+        {doc.year && <div><dt class="opacity-60 inline">Rok: </dt><dd class="text-foreground inline">{doc.year}</dd></div>}
+        {doc.place && <div><dt class="opacity-60 inline">Miejsce: </dt><dd class="text-foreground inline">{doc.place}</dd></div>}
+        {doc.verifiedBy && <div><dt class="opacity-60 inline">Zweryfikowany przez: </dt><dd class="text-foreground inline">{doc.verifiedBy}</dd></div>}
+      </dl>
+    </header>
+
+    {doc.gallery && doc.gallery.length > 0 && (
+      <div class="mb-10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        {doc.gallery.map((img) => img.asset && (
+          <img
+            src={urlFor(img).width(640).quality(75).auto('format').url()}
+            alt={img.alt ?? doc!.title}
+            loading="lazy"
+            class="w-full aspect-square object-cover rounded-lg border border-border/40"
+          />
+        ))}
+      </div>
+    )}
+
+    {doc.shortDescription && (
+      <p class="text-lg text-muted-foreground mb-8 max-w-3xl [text-wrap:pretty]">{doc.shortDescription}</p>
+    )}
+
+    {doc.fullStory && (
+      <section class="mb-10">
+        <h2 class="font-serif text-2xl mb-4">Pełna historia</h2>
+        <PortableText value={doc.fullStory as never} />
+      </section>
+    )}
+
+    {doc.scientificAnalysis && (
+      <section class="mb-10">
+        <h2 class="font-serif text-2xl mb-4">Analiza naukowa</h2>
+        <PortableText value={doc.scientificAnalysis as never} />
+      </section>
+    )}
+
+    {doc.sources && doc.sources.length > 0 && (
+      <section class="mt-12 pt-8 border-t border-border/40">
+        <p class="font-mono text-xs uppercase tracking-[0.3em] text-primary/80 mb-3">Źródła</p>
+        <ul class="space-y-2">
+          {doc.sources.map((s) => (
+            <li>
+              {s.url ? (
+                <a href={s.url} class="text-primary hover:opacity-80 text-sm" rel="noopener noreferrer" target="_blank">{s.title ?? s.url} ↗</a>
+              ) : (
+                <span class="text-sm text-muted-foreground">{s.title}</span>
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    {doc.relatedArguments && doc.relatedArguments.length > 0 && (
+      <section class="mt-12 pt-8 border-t border-border/40">
+        <p class="font-mono text-xs uppercase tracking-[0.3em] text-primary/80 mb-3">Powiązane argumenty</p>
+        <ul class="grid sm:grid-cols-2 gap-3">
+          {doc.relatedArguments.map((a) => (
+            <li><a href={`/argumenty/${a.slug}`} class="block rounded-lg border border-border/40 bg-card/30 p-4 hover:bg-card/70"><p class="font-medium">{a.title}</p></a></li>
+          ))}
+        </ul>
+      </section>
+    )}
+  </article>
+</BaseLayout>

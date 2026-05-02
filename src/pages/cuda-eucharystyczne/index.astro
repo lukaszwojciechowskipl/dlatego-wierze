@@ -1,0 +1,94 @@
+---
+import GalleryLayout from '@/layouts/GalleryLayout.astro';
+import Timeline, { type TimelineItem } from '@/components/interactive/Timeline.astro';
+import WorldMap, { type WorldMapMarker } from '@/components/interactive/WorldMap';
+import { sanityClient } from '@/lib/sanity';
+import { ALL_MIRACLES } from '@/lib/queries';
+
+interface Miracle {
+  _id: string;
+  title: string;
+  slug: string;
+  kind?: string;
+  year?: number;
+  place?: string;
+  location?: { lat: number; lng: number };
+  shortDescription?: string;
+  verifiedBy?: string;
+  thumb?: { asset?: { _ref: string } };
+}
+
+let miracles: Miracle[] = [];
+try {
+  miracles = (await sanityClient.fetch(ALL_MIRACLES)) ?? [];
+} catch (err) {
+  console.warn('[cuda-eucharystyczne] sanity fetch failed:', err);
+}
+
+const KIND_LABELS: Record<string, string> = {
+  eucharystyczny: 'Eucharystyczny',
+  maryjny: 'Maryjny',
+  inne: 'Inne',
+};
+
+const timelineItems: TimelineItem[] = miracles.map(m => ({
+  id: m._id,
+  year: m.year,
+  title: m.title,
+  place: m.place,
+  slug: m.slug,
+  shortDescription: m.shortDescription,
+  kind: m.kind ? KIND_LABELS[m.kind] ?? m.kind : undefined,
+}));
+
+const mapMarkers: WorldMapMarker[] = miracles
+  .filter(m => m.location?.lat !== undefined && m.location?.lng !== undefined)
+  .map(m => ({
+    id: m._id,
+    name: m.title,
+    slug: m.slug,
+    place: m.place,
+    year: m.year,
+    kind: m.kind,
+    lat: m.location!.lat,
+    lng: m.location!.lng,
+  }));
+---
+
+<GalleryLayout
+  title="Cuda eucharystyczne i&nbsp;maryjne"
+  eyebrow="Tam, gdzie nauka milknie"
+  description="Lanciano, Buenos Aires, Sokółka, Legnica — przemiany konsekrowanej hostii w&nbsp;tkankę mięśnia sercowego. Krew grupy AB. Niezależne badania potwierdzają zbieżność wyników."
+  count={miracles.length}
+>
+  {miracles.length === 0 ? (
+    <div class="rounded-2xl border border-border/40 bg-card/30 p-10 text-center">
+      <p class="font-serif text-2xl mb-3">Galeria jest pusta</p>
+      <p class="text-muted-foreground mb-6 max-w-lg mx-auto [text-wrap:pretty]">
+        Cuda eucharystyczne dodane przez redakcję pojawią się na osi czasu i&nbsp;mapie.
+      </p>
+      <a href="/admin" class="inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-5 py-2 text-sm hover:opacity-90" rel="nofollow">
+        Otwórz panel redakcyjny
+      </a>
+    </div>
+  ) : (
+    <div class="space-y-16">
+      {mapMarkers.length > 0 && (
+        <section>
+          <p class="font-mono text-xs uppercase tracking-[0.3em] text-primary/80 mb-3">Mapa świata</p>
+          <h2 class="font-serif text-2xl sm:text-3xl mb-6">Gdzie wydarzyły się cuda</h2>
+          <WorldMap markers={mapMarkers} client:visible />
+          <p class="mt-3 text-xs text-muted-foreground/70">
+            Najedź lub kliknij znacznik. Mapę można powiększać i&nbsp;przesuwać.
+          </p>
+        </section>
+      )}
+
+      <section>
+        <p class="font-mono text-xs uppercase tracking-[0.3em] text-primary/80 mb-3">Oś czasu</p>
+        <h2 class="font-serif text-2xl sm:text-3xl mb-8">Chronologia zdarzeń</h2>
+        <Timeline items={timelineItems} />
+      </section>
+    </div>
+  )}
+</GalleryLayout>

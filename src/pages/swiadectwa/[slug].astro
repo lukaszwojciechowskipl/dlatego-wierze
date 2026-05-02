@@ -1,0 +1,137 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PortableText from '@/components/content/PortableText.astro';
+import { sanityClient, urlFor } from '@/lib/sanity';
+import { ALL_TESTIMONIES, TESTIMONY_BY_SLUG } from '@/lib/queries';
+
+interface TestimonyDoc {
+  _id: string;
+  personName: string;
+  slug: { current: string };
+  shortSummary?: string;
+  kind?: string;
+  background?: string;
+  year?: number;
+  country?: string;
+  portrait?: { asset?: { _ref: string } };
+  fullStory?: unknown;
+  sourceUrl?: string;
+  videoUrl?: string;
+  verified?: boolean;
+  relatedArguments?: Array<{ _id: string; title: string; slug: string }>;
+}
+
+export async function getStaticPaths() {
+  let list: Array<{ slug: string }> = [];
+  try {
+    list = (await sanityClient.fetch(ALL_TESTIMONIES)) ?? [];
+  } catch {
+    list = [];
+  }
+  return list
+    .filter(t => typeof t.slug === 'string')
+    .map(t => ({ params: { slug: t.slug } }));
+}
+
+const { slug } = Astro.params;
+let doc: TestimonyDoc | null = null;
+try {
+  doc = await sanityClient.fetch(TESTIMONY_BY_SLUG, { slug });
+} catch (err) {
+  console.warn(`[swiadectwa/${slug}] sanity fetch failed:`, err);
+}
+
+if (!doc) {
+  return Astro.redirect('/swiadectwa', 302);
+}
+---
+
+<BaseLayout
+  title={`${doc.personName} · Świadectwo · Dlatego Wierzę`}
+  description={doc.shortSummary ?? doc.personName}
+>
+  <article class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+    <a href="/swiadectwa" class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-8">
+      ← Powrót do galerii świadectw
+    </a>
+
+    <div class="grid lg:grid-cols-[18rem_1fr] gap-10">
+      <aside class="space-y-4">
+        {doc.portrait?.asset && (
+          <img
+            src={urlFor(doc.portrait).width(720).quality(80).auto('format').url()}
+            alt={doc.personName}
+            class="w-full rounded-xl border border-border/40"
+          />
+        )}
+        <dl class="text-sm space-y-2 text-muted-foreground">
+          {doc.kind && (
+            <div>
+              <dt class="text-xs uppercase tracking-widest opacity-60">Rodzaj</dt>
+              <dd class="text-foreground">{doc.kind}</dd>
+            </div>
+          )}
+          {doc.background && (
+            <div>
+              <dt class="text-xs uppercase tracking-widest opacity-60">Pochodzenie</dt>
+              <dd class="text-foreground">{doc.background}</dd>
+            </div>
+          )}
+          {doc.year && (
+            <div>
+              <dt class="text-xs uppercase tracking-widest opacity-60">Rok</dt>
+              <dd class="text-foreground">{doc.year}</dd>
+            </div>
+          )}
+          {doc.country && (
+            <div>
+              <dt class="text-xs uppercase tracking-widest opacity-60">Kraj</dt>
+              <dd class="text-foreground">{doc.country}</dd>
+            </div>
+          )}
+        </dl>
+        {(doc.sourceUrl || doc.videoUrl) && (
+          <div class="space-y-2 pt-4 border-t border-border/40">
+            {doc.sourceUrl && (
+              <a href={doc.sourceUrl} class="block text-sm text-primary hover:opacity-80" rel="noopener noreferrer" target="_blank">
+                Źródło online ↗
+              </a>
+            )}
+            {doc.videoUrl && (
+              <a href={doc.videoUrl} class="block text-sm text-primary hover:opacity-80" rel="noopener noreferrer" target="_blank">
+                Wideo ↗
+              </a>
+            )}
+          </div>
+        )}
+      </aside>
+
+      <main>
+        <h1 class="font-serif text-4xl sm:text-5xl leading-tight mb-3">{doc.personName}</h1>
+        {doc.shortSummary && (
+          <p class="text-lg text-muted-foreground mb-8 [text-wrap:pretty]">{doc.shortSummary}</p>
+        )}
+        {doc.fullStory ? (
+          <PortableText value={doc.fullStory as never} />
+        ) : (
+          <p class="text-muted-foreground italic">Pełna historia jeszcze nie została dodana.</p>
+        )}
+
+        {doc.relatedArguments && doc.relatedArguments.length > 0 && (
+          <div class="mt-12 pt-8 border-t border-border/40">
+            <p class="font-mono text-xs uppercase tracking-[0.3em] text-primary/80 mb-3">Powiązane argumenty</p>
+            <ul class="grid sm:grid-cols-2 gap-3">
+              {doc.relatedArguments.map((a) => (
+                <li>
+                  <a href={`/argumenty/${a.slug}`} class="block rounded-lg border border-border/40 bg-card/30 p-4 hover:bg-card/70">
+                    <p class="font-medium">{a.title}</p>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </main>
+    </div>
+  </article>
+</BaseLayout>

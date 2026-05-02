@@ -1,0 +1,106 @@
+---
+import GalleryLayout from '@/layouts/GalleryLayout.astro';
+import { sanityClient, urlFor } from '@/lib/sanity';
+import { ALL_SAINTS } from '@/lib/queries';
+
+interface Saint {
+  _id: string;
+  name: string;
+  slug: string;
+  rank?: string;
+  birthYear?: number;
+  deathYear?: number;
+  feastDay?: string;
+  incorrupt?: boolean;
+  stigmata?: boolean;
+  portrait?: { asset?: { _ref: string } };
+  shortBio?: string;
+}
+
+let saints: Saint[] = [];
+try {
+  saints = (await sanityClient.fetch(ALL_SAINTS)) ?? [];
+} catch (err) {
+  console.warn('[swieci] sanity fetch failed:', err);
+}
+
+const RANK_LABELS: Record<string, string> = {
+  swiety: 'św.',
+  blogoslawiony: 'bł.',
+  'sluga-bozy': 'Sługa Boży',
+  czcigodny: 'czcigodny',
+};
+---
+
+<GalleryLayout
+  title="Święci i&nbsp;Błogosławieni"
+  eyebrow="Świadkowie żywej wiary"
+  description="Ludzie, których życie i&nbsp;często śmierć potwierdziły rzeczywistość Boga. Stygmaty, nierozłożone ciała, bilokacje — fenomeny, które nauka opisuje, a&nbsp;których nie wyjaśnia."
+  count={saints.length}
+>
+  {saints.length === 0 ? (
+    <div class="rounded-2xl border border-border/40 bg-card/30 p-10 text-center">
+      <p class="font-serif text-2xl mb-3">Galeria jest pusta</p>
+      <p class="text-muted-foreground mb-6 max-w-lg mx-auto [text-wrap:pretty]">
+        Życiorysy świętych dodane przez redakcję pojawią się tutaj automatycznie.
+      </p>
+      <a
+        href="/admin"
+        class="inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-5 py-2 text-sm hover:opacity-90"
+        rel="nofollow"
+      >
+        Otwórz panel redakcyjny
+      </a>
+    </div>
+  ) : (
+    <ul class="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 [column-fill:_balance]">
+      {saints.map((s) => (
+        <li class="break-inside-avoid mb-4">
+          <a
+            href={`/swieci/${s.slug}`}
+            class="group block rounded-xl border border-border/50 bg-card/40 backdrop-blur-sm overflow-hidden hover:border-primary/40 hover:bg-card/70 transition-all"
+          >
+            {s.portrait?.asset && (
+              <div class="aspect-[4/5] overflow-hidden">
+                <img
+                  src={urlFor(s.portrait).width(600).quality(75).auto('format').url()}
+                  alt={s.name}
+                  loading="lazy"
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                />
+              </div>
+            )}
+            <div class="p-5">
+              <p class="font-serif text-lg leading-tight">
+                {s.rank && <span class="opacity-70 mr-1.5">{RANK_LABELS[s.rank] ?? s.rank}</span>}
+                {s.name}
+              </p>
+              {(s.birthYear || s.deathYear) && (
+                <p class="text-xs text-muted-foreground mt-1">
+                  {s.birthYear ?? '?'} — {s.deathYear ?? '?'}
+                </p>
+              )}
+              <div class="flex flex-wrap gap-1.5 mt-3">
+                {s.incorrupt && (
+                  <span class="text-[10px] uppercase tracking-widest text-primary/80 px-2 py-0.5 rounded-full border border-primary/30">
+                    nierozłożone ciało
+                  </span>
+                )}
+                {s.stigmata && (
+                  <span class="text-[10px] uppercase tracking-widest text-primary/80 px-2 py-0.5 rounded-full border border-primary/30">
+                    stygmaty
+                  </span>
+                )}
+              </div>
+              {s.shortBio && (
+                <p class="text-sm text-muted-foreground mt-3 line-clamp-3 leading-relaxed [text-wrap:pretty]">
+                  {s.shortBio}
+                </p>
+              )}
+            </div>
+          </a>
+        </li>
+      ))}
+    </ul>
+  )}
+</GalleryLayout>

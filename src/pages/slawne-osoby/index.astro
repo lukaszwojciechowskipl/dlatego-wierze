@@ -1,0 +1,76 @@
+---
+import GalleryLayout from '@/layouts/GalleryLayout.astro';
+import { sanityClient, urlFor } from '@/lib/sanity';
+import { ALL_FAMOUS_PEOPLE } from '@/lib/queries';
+
+interface Person {
+  _id: string;
+  name: string;
+  slug: string;
+  profession?: string;
+  country?: string;
+  portrait?: { asset?: { _ref: string } };
+  shortBio?: string;
+}
+
+let people: Person[] = [];
+try {
+  people = (await sanityClient.fetch(ALL_FAMOUS_PEOPLE)) ?? [];
+} catch (err) {
+  console.warn('[slawne-osoby] sanity fetch failed:', err);
+}
+---
+
+<GalleryLayout
+  title="Sławne osoby wierzące"
+  eyebrow="Wiara wybitnych"
+  description="Naukowcy laureaci Nobla, pisarze nagradzani Pulitzerem, artyści światowej klasy — ich życiorysy obala mit, jakoby chrześcijaństwo było religią dla niewykształconych."
+  count={people.length}
+>
+  {people.length === 0 ? (
+    <div class="rounded-2xl border border-border/40 bg-card/30 p-10 text-center">
+      <p class="font-serif text-2xl mb-3">Galeria jest pusta</p>
+      <p class="text-muted-foreground mb-6 max-w-lg mx-auto [text-wrap:pretty]">
+        Profile sławnych osób dodane przez redakcję pojawią się tutaj.
+      </p>
+      <a href="/admin" class="inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-5 py-2 text-sm hover:opacity-90" rel="nofollow">
+        Otwórz panel redakcyjny
+      </a>
+    </div>
+  ) : (
+    <ul class="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 [column-fill:_balance]">
+      {people.map((p) => (
+        <li class="break-inside-avoid mb-4">
+          <a
+            href={`/slawne-osoby/${p.slug}`}
+            class="group block rounded-xl border border-border/50 bg-card/40 backdrop-blur-sm overflow-hidden hover:border-primary/40 hover:bg-card/70 transition-all"
+          >
+            {p.portrait?.asset && (
+              <div class="aspect-[4/5] overflow-hidden">
+                <img
+                  src={urlFor(p.portrait).width(600).quality(75).auto('format').url()}
+                  alt={p.name}
+                  loading="lazy"
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                />
+              </div>
+            )}
+            <div class="p-5">
+              <p class="font-serif text-lg leading-tight">{p.name}</p>
+              {(p.profession || p.country) && (
+                <p class="text-xs text-muted-foreground mt-1">
+                  {[p.profession, p.country].filter(Boolean).join(' · ')}
+                </p>
+              )}
+              {p.shortBio && (
+                <p class="text-sm text-muted-foreground mt-3 line-clamp-3 leading-relaxed [text-wrap:pretty]">
+                  {p.shortBio}
+                </p>
+              )}
+            </div>
+          </a>
+        </li>
+      ))}
+    </ul>
+  )}
+</GalleryLayout>

@@ -1,0 +1,106 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PortableText from '@/components/content/PortableText.astro';
+import { sanityClient, urlFor } from '@/lib/sanity';
+import { ALL_FAMOUS_PEOPLE, FAMOUS_PERSON_BY_SLUG } from '@/lib/queries';
+
+interface PersonDoc {
+  _id: string;
+  name: string;
+  slug: { current: string };
+  profession?: string;
+  birthYear?: number;
+  deathYear?: number;
+  country?: string;
+  denomination?: string;
+  portrait?: { asset?: { _ref: string } };
+  shortBio?: string;
+  fullStory?: unknown;
+  famousQuote?: { text?: string; source?: string };
+  sources?: Array<{ title?: string; url?: string }>;
+  relatedArguments?: Array<{ _id: string; title: string; slug: string }>;
+}
+
+export async function getStaticPaths() {
+  let list: Array<{ slug: string }> = [];
+  try {
+    list = (await sanityClient.fetch(ALL_FAMOUS_PEOPLE)) ?? [];
+  } catch {
+    list = [];
+  }
+  return list.filter(p => typeof p.slug === 'string').map(p => ({ params: { slug: p.slug } }));
+}
+
+const { slug } = Astro.params;
+let doc: PersonDoc | null = null;
+try {
+  doc = await sanityClient.fetch(FAMOUS_PERSON_BY_SLUG, { slug });
+} catch (err) {
+  console.warn(`[slawne-osoby/${slug}] sanity fetch failed:`, err);
+}
+if (!doc) return Astro.redirect('/slawne-osoby', 302);
+---
+
+<BaseLayout title={`${doc.name} · Dlatego Wierzę`} description={doc.shortBio ?? doc.name}>
+  <article class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+    <a href="/slawne-osoby" class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-8">
+      ← Powrót do galerii
+    </a>
+
+    <div class="grid lg:grid-cols-[18rem_1fr] gap-10">
+      <aside class="space-y-4">
+        {doc.portrait?.asset && (
+          <img src={urlFor(doc.portrait).width(720).quality(80).auto('format').url()} alt={doc.name} class="w-full rounded-xl border border-border/40" />
+        )}
+        <dl class="text-sm space-y-2 text-muted-foreground">
+          {doc.profession && <div><dt class="text-xs uppercase tracking-widest opacity-60">Zawód</dt><dd class="text-foreground">{doc.profession}</dd></div>}
+          {(doc.birthYear || doc.deathYear) && <div><dt class="text-xs uppercase tracking-widest opacity-60">Lata</dt><dd class="text-foreground">{doc.birthYear ?? '?'} — {doc.deathYear ?? '?'}</dd></div>}
+          {doc.country && <div><dt class="text-xs uppercase tracking-widest opacity-60">Kraj</dt><dd class="text-foreground">{doc.country}</dd></div>}
+          {doc.denomination && <div><dt class="text-xs uppercase tracking-widest opacity-60">Wyznanie</dt><dd class="text-foreground">{doc.denomination}</dd></div>}
+        </dl>
+      </aside>
+
+      <main>
+        <h1 class="font-serif text-4xl sm:text-5xl leading-tight mb-3">{doc.name}</h1>
+        {doc.shortBio && <p class="text-lg text-muted-foreground mb-8 [text-wrap:pretty]">{doc.shortBio}</p>}
+
+        {doc.famousQuote?.text && (
+          <figure class="my-8">
+            <blockquote class="border-l-4 border-primary/60 pl-5 font-serif text-xl italic">{doc.famousQuote.text}</blockquote>
+            {doc.famousQuote.source && <figcaption class="mt-2 pl-5 text-sm text-muted-foreground">— {doc.famousQuote.source}</figcaption>}
+          </figure>
+        )}
+
+        {doc.fullStory ? <PortableText value={doc.fullStory as never} /> : <p class="text-muted-foreground italic">Pełna historia jeszcze nie została dodana.</p>}
+
+        {doc.sources && doc.sources.length > 0 && (
+          <div class="mt-12 pt-8 border-t border-border/40">
+            <p class="font-mono text-xs uppercase tracking-[0.3em] text-primary/80 mb-3">Źródła</p>
+            <ul class="space-y-2">
+              {doc.sources.map((s) => (
+                <li>
+                  {s.url ? (
+                    <a href={s.url} class="text-primary hover:opacity-80 text-sm" rel="noopener noreferrer" target="_blank">{s.title ?? s.url} ↗</a>
+                  ) : (
+                    <span class="text-sm text-muted-foreground">{s.title}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {doc.relatedArguments && doc.relatedArguments.length > 0 && (
+          <div class="mt-12 pt-8 border-t border-border/40">
+            <p class="font-mono text-xs uppercase tracking-[0.3em] text-primary/80 mb-3">Powiązane argumenty</p>
+            <ul class="grid sm:grid-cols-2 gap-3">
+              {doc.relatedArguments.map((a) => (
+                <li><a href={`/argumenty/${a.slug}`} class="block rounded-lg border border-border/40 bg-card/30 p-4 hover:bg-card/70"><p class="font-medium">{a.title}</p></a></li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </main>
+    </div>
+  </article>
+</BaseLayout>

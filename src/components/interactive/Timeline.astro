@@ -1,0 +1,65 @@
+---
+export interface TimelineItem {
+  id: string;
+  year?: number;
+  title: string;
+  place?: string;
+  slug: string;
+  shortDescription?: string;
+  kind?: string;
+}
+
+interface Props {
+  items: TimelineItem[];
+  basePath?: string;
+}
+
+const { items, basePath = '/cuda-eucharystyczne' } = Astro.props;
+
+const sorted = [...items].sort((a, b) => {
+  if (a.year === undefined) return 1;
+  if (b.year === undefined) return -1;
+  return a.year - b.year;
+});
+---
+
+{sorted.length === 0 ? (
+  <p class="text-muted-foreground italic text-center py-12">Brak wpisów w&nbsp;osi czasu.</p>
+) : (
+  <ol class="relative border-l-2 border-primary/30 pl-8 space-y-10 ml-2">
+    {sorted.map((item) => (
+      <li class="relative">
+        <span
+          aria-hidden="true"
+          class="absolute -left-[2.5rem] top-1.5 inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-[10px] font-mono font-bold ring-4 ring-background"
+        >
+          ★
+        </span>
+        <a
+          href={`${basePath}/${item.slug}`}
+          class="block group rounded-lg border border-border/40 bg-card/30 p-5 hover:border-primary/40 hover:bg-card/70 transition-all"
+        >
+          <div class="flex items-baseline gap-3 flex-wrap mb-1">
+            {item.year && (
+              <span class="font-mono text-2xl text-primary tabular-nums">{item.year}</span>
+            )}
+            {item.kind && (
+              <span class="text-[10px] uppercase tracking-widest text-muted-foreground/80">{item.kind}</span>
+            )}
+          </div>
+          <p class="font-serif text-xl leading-tight group-hover:text-primary transition-colors">
+            {item.title}
+          </p>
+          {item.place && (
+            <p class="text-sm text-muted-foreground mt-1">{item.place}</p>
+          )}
+          {item.shortDescription && (
+            <p class="text-sm text-muted-foreground mt-3 line-clamp-3 leading-relaxed [text-wrap:pretty]">
+              {item.shortDescription}
+            </p>
+          )}
+        </a>
+      </li>
+    ))}
+  </ol>
+)}

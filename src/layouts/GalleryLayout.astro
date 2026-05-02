@@ -1,0 +1,45 @@
+---
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  title: string;
+  eyebrow: string;
+  description: string;
+  count?: number;
+  ogImage?: string;
+}
+
+const { title, eyebrow, description, count, ogImage } = Astro.props;
+---
+
+<BaseLayout title={`${title} · Dlatego Wierzę`} description={description} ogImage={ogImage}>
+  <header class="border-b border-border/40 bg-gradient-to-b from-card/40 to-transparent">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
+      <div class="flex items-end justify-between flex-wrap gap-4">
+        <div>
+          <p class="font-mono text-xs uppercase tracking-[0.3em] text-primary/85 mb-3">
+            {eyebrow}
+          </p>
+          <h1 class="font-serif text-4xl sm:text-5xl lg:text-6xl leading-tight max-w-3xl">
+            {title}
+          </h1>
+          <p class="mt-4 text-base sm:text-lg text-muted-foreground max-w-2xl leading-relaxed [text-wrap:pretty]">
+            {description}
+          </p>
+        </div>
+        {count !== undefined && (
+          <div class="text-right">
+            <p class="font-serif text-5xl text-primary">{count}</p>
+            <p class="font-mono text-[10px] uppercase tracking-widest text-muted-foreground/70 mt-1">
+              {count === 1 ? 'wpis' : 'wpisów'}
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  </header>
+
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 lg:py-16">
+    <slot />
+  </div>
+</BaseLayout>

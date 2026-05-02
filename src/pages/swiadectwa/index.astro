@@ -1,0 +1,103 @@
+---
+import GalleryLayout from '@/layouts/GalleryLayout.astro';
+import { sanityClient } from '@/lib/sanity';
+import { ALL_TESTIMONIES } from '@/lib/queries';
+import { urlFor } from '@/lib/sanity';
+
+interface Testimony {
+  _id: string;
+  personName: string;
+  slug: string;
+  shortSummary?: string;
+  kind?: string;
+  background?: string;
+  year?: number;
+  country?: string;
+  portrait?: { asset?: { _ref: string } };
+  verified?: boolean;
+}
+
+let testimonies: Testimony[] = [];
+try {
+  testimonies = (await sanityClient.fetch(ALL_TESTIMONIES)) ?? [];
+} catch (err) {
+  console.warn('[swiadectwa] sanity fetch failed:', err);
+}
+
+const KIND_LABELS: Record<string, string> = {
+  nawrocenie: 'Nawrócenie',
+  uzdrowienie: 'Uzdrowienie',
+  wizja: 'Wizja',
+  inne: 'Inne',
+};
+---
+
+<GalleryLayout
+  title="Świadectwa"
+  eyebrow="Opowieści wiary"
+  description="Ludzie, którzy doświadczyli realności Boga w&nbsp;swoim życiu — nawrócenia, uzdrowienia, wizje. Każde świadectwo to niezależne, osobiste spotkanie z&nbsp;tą samą rzeczywistością."
+  count={testimonies.length}
+>
+  {testimonies.length === 0 ? (
+    <div class="rounded-2xl border border-border/40 bg-card/30 p-10 text-center">
+      <p class="font-serif text-2xl mb-3">Galeria jest pusta</p>
+      <p class="text-muted-foreground mb-6 max-w-lg mx-auto [text-wrap:pretty]">
+        Świadectwa dodane przez redakcję w&nbsp;panelu Sanity pojawią się tutaj automatycznie.
+      </p>
+      <a
+        href="/admin"
+        class="inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-5 py-2 text-sm hover:opacity-90"
+        rel="nofollow"
+      >
+        Otwórz panel redakcyjny
+      </a>
+    </div>
+  ) : (
+    <ul class="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 [column-fill:_balance]">
+      {testimonies.map((t) => (
+        <li class="break-inside-avoid mb-4">
+          <a
+            href={`/swiadectwa/${t.slug}`}
+            class="group block rounded-xl border border-border/50 bg-card/40 backdrop-blur-sm overflow-hidden hover:border-primary/40 hover:bg-card/70 transition-all"
+          >
+            {t.portrait?.asset && (
+              <div class="aspect-[4/5] overflow-hidden">
+                <img
+                  src={urlFor(t.portrait).width(600).quality(75).auto('format').url()}
+                  alt={t.personName}
+                  loading="lazy"
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                />
+              </div>
+            )}
+            <div class="p-5">
+              <div class="flex items-center gap-2 mb-2">
+                {t.kind && (
+                  <span class="text-[10px] uppercase tracking-widest text-primary/80">
+                    {KIND_LABELS[t.kind] ?? t.kind}
+                  </span>
+                )}
+                {t.verified && (
+                  <span class="text-[10px] uppercase tracking-widest text-emerald-400/80" title="Zweryfikowane">
+                    ✓ zweryfikowane
+                  </span>
+                )}
+              </div>
+              <p class="font-serif text-lg leading-tight">{t.personName}</p>
+              {(t.background || t.year || t.country) && (
+                <p class="text-xs text-muted-foreground mt-1">
+                  {[t.background, t.country, t.year].filter(Boolean).join(' · ')}
+                </p>
+              )}
+              {t.shortSummary && (
+                <p class="text-sm text-muted-foreground mt-3 line-clamp-4 leading-relaxed [text-wrap:pretty]">
+                  {t.shortSummary}
+                </p>
+              )}
+            </div>
+          </a>
+        </li>
+      ))}
+    </ul>
+  )}
+</GalleryLayout>

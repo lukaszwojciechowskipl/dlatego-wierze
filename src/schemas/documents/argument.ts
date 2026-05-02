@@ -41,7 +41,7 @@ export default defineType({
     defineField({
       name: 'color',
       type: 'string',
-      title: 'Kolor konstelacji (HSL)',
+      title: 'Kolor argumentu (HSL)',
       description: 'np. hsl(45 80% 60%)',
     }),
     defineField({ name: 'heroImage', type: 'image', title: 'Zdjęcie nagłówkowe', options: { hotspot: true } }),

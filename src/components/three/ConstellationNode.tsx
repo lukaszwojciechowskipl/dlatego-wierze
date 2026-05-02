@@ -56,16 +56,29 @@ export default function ConstellationNode({
         color={color}
         opacity={0.92}
       />
-      {/* Glowing core — large enough to be unambiguously clickable on
-          desktop without erasing the "star, not planet" feel. */}
+      {/* True 3D core — meshStandardMaterial responds to scene lights so
+          the planet has highlights on one side, shadow on the other. The
+          emissive channel keeps the colour glowing even on the shaded
+          side, giving "small star" feel rather than "drawn circle". */}
       <mesh>
-        <sphereGeometry args={[0.45, 24, 24]} />
-        <meshBasicMaterial color={color} toneMapped={false} />
+        <sphereGeometry args={[0.5, 48, 48]} />
+        <meshStandardMaterial
+          color={color}
+          emissive={color}
+          emissiveIntensity={hovered || active ? 0.85 : 0.55}
+          roughness={0.32}
+          metalness={0.12}
+        />
       </mesh>
-      {/* Soft halo — gives the core depth and visual gravity */}
+      {/* Inner halo — additive-feel via low opacity */}
       <mesh>
         <sphereGeometry args={[0.85, 24, 24]} />
-        <meshBasicMaterial color={color} transparent opacity={0.14} toneMapped={false} />
+        <meshBasicMaterial color={color} transparent opacity={0.18} toneMapped={false} depthWrite={false} />
+      </mesh>
+      {/* Outer atmosphere glow — fades into the void */}
+      <mesh>
+        <sphereGeometry args={[1.45, 24, 24]} />
+        <meshBasicMaterial color={color} transparent opacity={0.06} toneMapped={false} depthWrite={false} />
       </mesh>
       {/* Invisible click target — also runs the drag/click discrimination */}
       <mesh

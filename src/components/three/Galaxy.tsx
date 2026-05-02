@@ -56,6 +56,12 @@ function GalaxyScene({
   return (
     <>
       <color attach="background" args={['#0a0e27']} />
+      {/* Subtle ambient + a single key light off to the side gives the
+          standard-material spheres a real 3D shading gradient without
+          flattening their emissive glow. */}
+      <ambientLight intensity={0.35} />
+      <pointLight position={[18, 12, 14]} intensity={1.1} color="#fff5ea" distance={120} decay={1.2} />
+      <pointLight position={[-14, -8, -10]} intensity={0.4} color="#aab8ff" distance={100} decay={1.4} />
       <Stars
         radius={300}
         depth={60}
@@ -122,16 +128,19 @@ export default function Galaxy() {
 
       {hovered && (
         <div
-          className="pointer-events-none absolute bottom-6 right-4 sm:right-6 max-w-[280px] rounded-xl border border-border/60 bg-background/90 backdrop-blur px-4 py-3 shadow-2xl"
-          style={{ borderColor: `hsl(${hovered.hue} 70% 55% / 0.55)` }}
+          className="pointer-events-none absolute bottom-6 right-4 sm:right-6 max-w-[340px] rounded-xl border-2 bg-background/95 backdrop-blur-md px-5 py-4 shadow-2xl"
+          style={{ borderColor: `hsl(${hovered.hue} 70% 55% / 0.7)` }}
         >
-          <p className="font-mono text-[10px] uppercase tracking-widest opacity-60">
-            Konstelacja {String(hovered.id).padStart(2, '0')} · kliknij, by przeczytać
+          <p
+            className="font-mono text-[10px] uppercase tracking-[0.28em] mb-1.5"
+            style={{ color: `hsl(${hovered.hue} 70% 70%)` }}
+          >
+            Argument {String(hovered.id).padStart(2, '0')} · kliknij, by otworzyć
           </p>
-          <p className="font-serif text-base mt-0.5" style={{ color: `hsl(${hovered.hue} 70% 70%)` }}>
+          <p className="font-serif text-lg leading-tight mb-2 text-foreground">
             {hovered.shortName}
           </p>
-          <p className="text-xs text-muted-foreground mt-1.5 leading-snug line-clamp-3">
+          <p className="text-sm text-foreground/85 leading-relaxed">
             {hovered.teaser}
           </p>
         </div>

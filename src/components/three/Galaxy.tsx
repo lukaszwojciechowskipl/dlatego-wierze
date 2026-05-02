@@ -81,10 +81,15 @@ function GalaxyScene({
         enableZoom={false}
         enablePan={false}
         autoRotate={!reducedMotion}
-        autoRotateSpeed={0.35}
-        rotateSpeed={0.4}
+        autoRotateSpeed={0.3}
+        rotateSpeed={0.35}
         enableDamping
         dampingFactor={0.08}
+        // Constrain pitch so users can't flip the scene upside-down or
+        // rotate past the horizon — keeps the galaxy framed nicely no
+        // matter how aggressively they drag.
+        minPolarAngle={Math.PI * 0.32}
+        maxPolarAngle={Math.PI * 0.68}
       />
       {!isMobile && !reducedMotion && (
         <EffectComposer multisampling={0} enableNormalPass={false}>

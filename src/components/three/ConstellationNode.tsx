@@ -14,8 +14,11 @@ interface Props {
   reducedSparkles: boolean;
 }
 
-const LABEL_FONT = '/fonts/inter-bold.woff';
-
+/**
+ * One constellation in the galaxy: a hover-reactive group of sparkles
+ * around a transparent click target, plus an always-billboarded label that
+ * scales up on hover.
+ */
 export default function ConstellationNode({
   constellation: c,
   radius,
@@ -35,7 +38,7 @@ export default function ConstellationNode({
   );
 
   const color = `hsl(${c.hue}, 70%, 65%)`;
-  const sparkleCount = reducedSparkles ? Math.max(10, Math.floor(c.starCount / 3)) : c.starCount;
+  const sparkleCount = reducedSparkles ? Math.max(8, Math.floor(c.starCount / 4)) : c.starCount;
 
   useFrame((_, delta) => {
     targetScale.current = hovered || active ? 1.35 : 1;
@@ -50,23 +53,18 @@ export default function ConstellationNode({
     <group ref={groupRef} position={position}>
       <Sparkles
         count={sparkleCount}
-        scale={3.4}
-        size={hovered || active ? 11 : 7}
+        scale={2.4}
+        size={hovered || active ? 6 : 4}
         speed={0.45}
         color={color}
-        opacity={0.9}
+        opacity={0.85}
       />
-      {/* Glowing core — sized for legibility on small mobile screens */}
+      {/* Brighter core */}
       <mesh>
-        <sphereGeometry args={[0.55, 24, 24]} />
+        <sphereGeometry args={[0.18, 16, 16]} />
         <meshBasicMaterial color={color} toneMapped={false} />
       </mesh>
-      {/* Halo for extra visibility / crosshair feel */}
-      <mesh>
-        <sphereGeometry args={[0.85, 24, 24]} />
-        <meshBasicMaterial color={color} transparent opacity={0.18} toneMapped={false} />
-      </mesh>
-      {/* Invisible click target — large so a fingertip on mobile hits it easily */}
+      {/* Invisible click target */}
       <mesh
         onPointerOver={(e) => {
           e.stopPropagation();
@@ -84,22 +82,27 @@ export default function ConstellationNode({
           onSelect(c);
         }}
       >
-        <sphereGeometry args={[2.6, 12, 12]} />
+        <sphereGeometry args={[1.6, 12, 12]} />
         <meshBasicMaterial transparent opacity={0} />
       </mesh>
       {showLabels && (
-        <Billboard position={[0, 1.4, 0]}>
+        <Billboard position={[0, 1.6, 0]} renderOrder={10}>
           <Text
-            font={LABEL_FONT}
-            fontSize={hovered || active ? 0.5 : 0.38}
-            letterSpacing={-0.015}
+            fontSize={hovered || active ? 0.42 : 0.32}
             color={hovered || active ? color : 'white'}
             anchorX="center"
             anchorY="bottom"
-            outlineWidth={0.025}
+            outlineWidth={0.018}
             outlineColor="#0a0e27"
-            outlineOpacity={0.95}
-            fillOpacity={hovered || active ? 1 : 0.8}
+            fillOpacity={hovered || active ? 1 : 0.75}
+            renderOrder={10}
+            // Disable depth testing so the label is always drawn on top of
+            // the constellation core/sparkles, regardless of the orbital
+            // angle. Without this, dragging the camera around the back of
+            // the sphere causes the label to be occluded by the planet.
+            material-depthTest={false}
+            material-depthWrite={false}
+            material-transparent
           >
             {c.shortName}
           </Text>

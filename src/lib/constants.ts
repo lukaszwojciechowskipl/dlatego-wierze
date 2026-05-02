@@ -72,7 +72,7 @@ const meta: Array<Omit<Constellation, 'position'>> = [
     id: 1,
     slug: 'dostrojenie-wszechswiata',
     name: 'Wszechświat dostrojony co do joty',
-    shortName: 'Dostrojenie',
+    shortName: 'Fine-tuning wszechświata',
     teaser:
       'Stałe fizyczne wszechświata są dobrane tak precyzyjnie, że gdyby choć jedna była inna o ułamek procenta, życie byłoby niemożliwe. To argument, który nawrócił współzałożyciela Wikipedii.',
     category: 'rozum',
@@ -84,7 +84,7 @@ const meta: Array<Omit<Constellation, 'position'>> = [
     id: 2,
     slug: 'historycznosc-zmartwychwstania',
     name: 'Pusty grób, którego nikt nie zaprzeczył',
-    shortName: 'Zmartwychwstanie',
+    shortName: 'Pusty grób Jezusa',
     teaser:
       'Pięć faktów minimalnych dotyczących śmierci Jezusa jest dziś uznanych przez ponad 75% historyków — także krytycznych. Pytanie nie brzmi *czy się coś stało*, lecz *jakie wyjaśnienie tych faktów jest najmocniejsze*.',
     category: 'rozum',
@@ -96,7 +96,7 @@ const meta: Array<Omit<Constellation, 'position'>> = [
     id: 3,
     slug: 'proroctwa-mesjanskie',
     name: 'Iz 53 — rysopis sprzed 200 lat',
-    shortName: 'Proroctwa',
+    shortName: 'Proroctwo Iz 53',
     teaser:
       'Wielki Zwój Izajasza z Qumran zawiera cały Izajasza 53 — opis krzyżowanego, milczącego Sługi Pańskiego — co najmniej 150 lat przed Jezusem. Skeptycki argument „chrześcijanie sfałszowali tekst" upadł w 1947.',
     category: 'rozum',
@@ -108,7 +108,7 @@ const meta: Array<Omit<Constellation, 'position'>> = [
     id: 4,
     slug: 'archeologia-biblii',
     name: '53 imion z Biblii w gruzach i pieczęciach',
-    shortName: 'Archeologia',
+    shortName: '53 imiona z Biblii',
     teaser:
       'Pomijając teologię — 53 osoby ze Starego i ponad 30 z Nowego Testamentu zostały zidentyfikowane na pozabiblijnych inskrypcjach z czasów ich życia. To historia, nie mit.',
     category: 'rozum',
@@ -120,7 +120,7 @@ const meta: Array<Omit<Constellation, 'position'>> = [
     id: 5,
     slug: 'nawrocenia-intelektualistow',
     name: 'Założyciel Wikipedii klęka',
-    shortName: 'Nawrócenia',
+    shortName: 'Sanger z Wikipedii',
     teaser:
       'Larry Sanger, doktor filozofii analitycznej i 35-letni ateista, w lutym 2025 publikuje wypracowanie wyjaśniające, dlaczego *właśnie metodyczny sceptycyzm* zaprowadził go do Chrystusa.',
     category: 'rozum',
@@ -132,7 +132,7 @@ const meta: Array<Omit<Constellation, 'position'>> = [
     id: 6,
     slug: 'wielkie-debaty',
     name: 'Trzy godziny, dwa umysły, jedno pytanie',
-    shortName: 'Debaty',
+    shortName: 'Craig vs Hitchens',
     teaser:
       'Kiedy najlepsi ateiści świata stanęli twarzą w twarz z najlepszymi apologetami, kto poradził sobie lepiej? Debaty są na YouTube, w pełnej długości. Nie czytaj recenzji — oceń sam.',
     category: 'rozum',
@@ -144,7 +144,7 @@ const meta: Array<Omit<Constellation, 'position'>> = [
     id: 7,
     slug: 'argument-cywilizacyjny',
     name: 'Dlaczego nawet ateiści wciąż myślą po chrześcijańsku',
-    shortName: 'Cywilizacja',
+    shortName: 'Tom Holland · Dominion',
     teaser:
       'Tom Holland — laicki historyk — pokazuje, że prawa człowieka, równość, sumienie, a nawet *sekularyzm* są wynalazkami chrześcijańskimi. Po napisaniu książki sam zaczął chodzić do kościoła.',
     category: 'rozum',
@@ -157,7 +157,7 @@ const meta: Array<Omit<Constellation, 'position'>> = [
     id: 8,
     slug: 'cuda-eucharystyczne',
     name: 'Hostia z Sokółki — serce człowieka w agonii',
-    shortName: 'Eucharystia',
+    shortName: 'Hostia z Sokółki',
     teaser:
       '2008, Podlasie. Dwóch profesorów UMB w mikroskopie elektronowym orzeka: tkanka mięśnia sercowego człowieka w agonii, splątana z chlebem w sposób niemożliwy do osiągnięcia ludzkimi środkami.',
     category: 'doswiadczenie',
@@ -169,7 +169,7 @@ const meta: Array<Omit<Constellation, 'position'>> = [
     id: 9,
     slug: 'cuda-maryjne-lourdes',
     name: 'Lourdes — 72 cuda, których medycyna nie wyjaśnia',
-    shortName: 'Lourdes',
+    shortName: '72 cuda w Lourdes',
     teaser:
       '16 kwietnia 2025: Międzynarodowy Komitet Medyczny ogłasza 72. cud — uzdrowienie z nieuleczalnego stwardnienia bocznego po 16 latach badań i głosowaniu 21 lekarzy.',
     category: 'doswiadczenie',
@@ -181,7 +181,7 @@ const meta: Array<Omit<Constellation, 'position'>> = [
     id: 10,
     slug: 'mistyka-stygmaty',
     name: 'Stygmaty Padre Pio — 50 lat krwi',
-    shortName: 'Stygmaty',
+    shortName: 'Stygmaty Padre Pio',
     teaser:
       'Padre Pio nosił otwarte, krwawiące rany przez 50 lat — bez infekcji, bez bliznowacenia, bez naukowego wyjaśnienia. Zniknęły bez śladu kilka godzin przed jego śmiercią w 1968.',
     category: 'doswiadczenie',
@@ -193,7 +193,7 @@ const meta: Array<Omit<Constellation, 'position'>> = [
     id: 11,
     slug: 'wspolczesne-uzdrowienia',
     name: 'Marcin ze Skierniewic kładzie ręce',
-    shortName: 'Uzdrowienia',
+    shortName: 'Marcin Zieliński',
     teaser:
       'Polski ewangelizator, dziesiątki tysięcy ludzi, świadectwa weryfikowane medycznie. To samo dzieje się w Mozambiku — przebadane przez Indiana University, opublikowane w *Southern Medical Journal*.',
     category: 'doswiadczenie',
@@ -205,7 +205,7 @@ const meta: Array<Omit<Constellation, 'position'>> = [
     id: 12,
     slug: 'swiadectwa-znanych',
     name: 'Lewandowski klęka. LaBeouf też',
-    shortName: 'Świadectwa znanych',
+    shortName: 'Lewandowski · LaBeouf',
     teaser:
       'Lewandowski od 2012: „Jestem katolikiem". Shia LaBeouf po roli Padre Pio przyjął bierzmowanie w sylwestra 2024. Misiek Koterski po 21 latach nałogu — 11 lat trzeźwości. Ludzie, którzy mają wszystko, wybierają wiarę.',
     category: 'doswiadczenie',
@@ -217,7 +217,7 @@ const meta: Array<Omit<Constellation, 'position'>> = [
     id: 13,
     slug: 'nde-i-sny-muzulmanow',
     name: 'Muzułmanie śnią Jezusa',
-    shortName: 'Sny i NDE',
+    shortName: 'Sny muzułmanów',
     teaser:
       'Iran ma najszybciej rosnący Kościół chrześcijański na świecie — w kraju, gdzie konwersja oznacza karę śmierci. Setki tysięcy Persów twierdzą, że Jezus przyszedł do nich w *śnie*.',
     category: 'doswiadczenie',
@@ -229,7 +229,7 @@ const meta: Array<Omit<Constellation, 'position'>> = [
     id: 14,
     slug: 'egzorcyzmy-demoniczne',
     name: '70 000 egzorcyzmów — zło istnieje',
-    shortName: 'Egzorcyzmy',
+    shortName: '70 000 egzorcyzmów',
     teaser:
       'Ks. Gabriele Amorth, oficjalny egzorcysta Rzymu, w ciągu życia przeprowadził ok. 70 000 egzorcyzmów. Raportowane zjawiska — xenoglossia, ujawnianie ukrytych grzechów — psychiatrii nie da się.',
     category: 'doswiadczenie',
@@ -241,7 +241,7 @@ const meta: Array<Omit<Constellation, 'position'>> = [
     id: 15,
     slug: 'przebudzenie-2025',
     name: 'Cicha rewolucja — Francja chrzci 10 384 dorosłych',
-    shortName: 'Przebudzenie 2025',
+    shortName: '10 384 chrztów we Francji',
     teaser:
       'Wielka Sobota 2025: Francja chrzci ponad 10 000 dorosłych — wzrost 45% rdr, podwojenie w 2 lata, 42% w wieku 18–25. To się dzieje w najbardziej zsekularyzowanym kraju Europy.',
     category: 'doswiadczenie',

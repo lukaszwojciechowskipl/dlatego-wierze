@@ -1,0 +1,40 @@
+---
+const year = new Date().getFullYear();
+---
+
+<footer class="mt-24 border-t border-border/50 bg-card/30">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 grid gap-8 md:grid-cols-3">
+    <div>
+      <p class="font-serif text-lg mb-2">Dlatego Wierzę</p>
+      <p class="text-sm text-muted-foreground leading-relaxed max-w-sm">
+        Galaktyka 15 niezależnych linii argumentacji za prawdziwością chrześcijaństwa.
+        Filozofia, nauka, historia, świadectwa, cuda — w jednym miejscu.
+      </p>
+    </div>
+
+    <div class="text-sm">
+      <p class="text-foreground/80 font-medium mb-3">Eksploruj</p>
+      <ul class="space-y-1.5 text-muted-foreground">
+        <li><a href="/argumenty/filozofia" class="hover:text-primary">15 argumentów</a></li>
+        <li><a href="/swiadectwa" class="hover:text-primary">Świadectwa</a></li>
+        <li><a href="/cuda-eucharystyczne" class="hover:text-primary">Cuda eucharystyczne</a></li>
+        <li><a href="/mapa-wiedzy" class="hover:text-primary">Mapa wiedzy</a></li>
+      </ul>
+    </div>
+
+    <div class="text-sm">
+      <p class="text-foreground/80 font-medium mb-3">Projekt</p>
+      <ul class="space-y-1.5 text-muted-foreground">
+        <li><a href="/o-projekcie" class="hover:text-primary">O&nbsp;projekcie</a></li>
+        <li><a href="/admin" class="hover:text-primary" rel="nofollow">Panel redakcyjny</a></li>
+        <li><a href="https://github.com/lukaszwojciechowskipl/dlatego-wierze" class="hover:text-primary" rel="noopener noreferrer">Kod źródłowy</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="border-t border-border/30">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 text-xs text-muted-foreground/70 flex flex-col sm:flex-row justify-between gap-2">
+      <p>© {year} Dlatego Wierzę. Treść chroniona prawem autorskim.</p>
+      <p class="font-mono">ad maiorem Dei gloriam</p>
+    </div>
+  </div>
+</footer>

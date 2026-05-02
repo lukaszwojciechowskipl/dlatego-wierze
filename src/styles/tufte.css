@@ -1,0 +1,86 @@
+/*
+ * Tufte-style sidenotes
+ *
+ * On large screens (>= 1024px) sidenotes float in the right margin next to
+ * their reference, replacing footnotes. On smaller screens, they collapse to
+ * an inline expandable <details> so the reading flow stays single-column.
+ */
+
+.sidenote-ref {
+  position: relative;
+  font-family: var(--font-sans);
+  font-size: 0.7em;
+  vertical-align: super;
+  color: var(--color-cosmos-gold);
+  cursor: pointer;
+  font-weight: 600;
+  margin: 0 0.1em;
+}
+
+.sidenote-ref::before { content: '['; opacity: 0.6; }
+.sidenote-ref::after  { content: ']'; opacity: 0.6; }
+
+/* Default (mobile/tablet) — inline expandable */
+.sidenote {
+  display: block;
+  margin: 0.75em 0;
+  padding: 0.75em 1em;
+  background: oklch(0.24 0.05 265 / 0.55);
+  border-left: 3px solid var(--color-cosmos-gold);
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: 0.9em;
+  line-height: 1.55;
+  color: var(--color-parchment-dim);
+}
+
+.sidenote-num {
+  font-weight: 600;
+  color: var(--color-cosmos-gold);
+  margin-right: 0.4em;
+}
+
+/* Desktop — float into right margin */
+@media (min-width: 1024px) {
+  .sidenote-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 38em) 16em;
+    gap: 2.5em;
+    align-items: start;
+  }
+
+  .sidenote-grid > main {
+    grid-column: 1;
+  }
+
+  .sidenote {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border-left: none;
+    border-radius: 0;
+    font-size: 0.85em;
+    color: var(--color-parchment-dim);
+    grid-column: 2;
+    align-self: start;
+    position: sticky;
+    top: 6rem;
+  }
+
+  /* Floating variant: when sidenote is rendered immediately after its ref,
+     position it in the right margin via a wrapper span */
+  .sidenote-margin {
+    float: right;
+    clear: right;
+    width: 14em;
+    margin-right: -16em;
+    margin-top: 0;
+    padding: 0 0 0 1em;
+    border-left: 1px solid var(--border);
+    background: transparent;
+    color: var(--color-parchment-dim);
+    font-size: 0.85em;
+    line-height: 1.55;
+    font-family: var(--font-sans);
+  }
+}

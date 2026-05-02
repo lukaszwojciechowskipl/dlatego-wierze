@@ -1,0 +1,106 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import '@/styles/tufte.css';
+import { CONSTELLATIONS } from '@/lib/constants';
+
+interface Props {
+  title: string;
+  subtitle?: string;
+  lead: string;
+  constellationId: number;
+  readingTimeMin?: number;
+  keyClaim?: string;
+  philosophers?: string[];
+  ogImage?: string;
+}
+
+const {
+  title,
+  subtitle,
+  lead,
+  constellationId,
+  readingTimeMin,
+  keyClaim,
+  philosophers = [],
+  ogImage,
+} = Astro.props;
+
+const constellation = CONSTELLATIONS.find(c => c.id === constellationId);
+const accent = constellation ? `hsl(${constellation.hue} 70% 65%)` : 'var(--color-cosmos-gold)';
+---
+
+<BaseLayout title={`${title} · Dlatego Wierzę`} description={lead} ogImage={ogImage}>
+  <article class="relative">
+    <header class="border-b border-border/40 bg-gradient-to-b from-card/40 to-transparent">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
+        {constellation && (
+          <a
+            href="/"
+            class="inline-flex items-center gap-2 text-xs uppercase tracking-widest mb-4 hover:opacity-80"
+            style={`color: ${accent}`}
+          >
+            <span aria-hidden="true">★</span>
+            Konstelacja {String(constellation.id).padStart(2, '0')} · {constellation.shortName}
+          </a>
+        )}
+
+        <h1 class="font-serif text-4xl sm:text-5xl lg:text-6xl leading-[1.05] max-w-4xl">
+          {title}
+        </h1>
+
+        {subtitle && (
+          <p class="mt-4 font-serif italic text-xl sm:text-2xl text-muted-foreground max-w-3xl">
+            {subtitle}
+          </p>
+        )}
+
+        <p class="mt-6 text-base sm:text-lg text-foreground/90 max-w-3xl leading-relaxed">
+          {lead}
+        </p>
+
+        <dl class="mt-8 flex flex-wrap gap-x-8 gap-y-3 text-sm text-muted-foreground">
+          {readingTimeMin && (
+            <div class="flex items-center gap-2">
+              <dt class="opacity-60">Czas czytania</dt>
+              <dd class="text-foreground/80">{readingTimeMin} min</dd>
+            </div>
+          )}
+          {keyClaim && (
+            <div class="flex items-center gap-2">
+              <dt class="opacity-60">Teza</dt>
+              <dd class="text-foreground/80 font-serif italic">„{keyClaim}"</dd>
+            </div>
+          )}
+          {philosophers.length > 0 && (
+            <div class="flex flex-wrap items-center gap-2">
+              <dt class="opacity-60">Myśliciele</dt>
+              <dd class="text-foreground/80">{philosophers.join(' · ')}</dd>
+            </div>
+          )}
+        </dl>
+      </div>
+    </header>
+
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+      <div class="lg:grid lg:grid-cols-[minmax(0,38em)_minmax(0,16em)] lg:gap-12 xl:gap-16">
+        <main class="tufte-article max-w-none">
+          <slot />
+        </main>
+
+        <aside class="hidden lg:block">
+          <div class="sticky top-24 space-y-6 text-sm">
+            <div>
+              <p class="text-xs uppercase tracking-widest text-muted-foreground/70 mb-2">Spis treści</p>
+              <slot name="toc">
+                <p class="text-muted-foreground italic">Spis treści generowany z nagłówków artykułu.</p>
+              </slot>
+            </div>
+            <slot name="aside" />
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <slot name="related" />
+  </article>
+</BaseLayout>

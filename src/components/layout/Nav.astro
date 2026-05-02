@@ -1,0 +1,53 @@
+---
+interface NavLink {
+  href: string;
+  label: string;
+}
+
+const links: NavLink[] = [
+  { href: '/', label: 'Galaktyka' },
+  { href: '/argumenty/filozofia', label: '15 Argumentów' },
+  { href: '/swiadectwa', label: 'Świadectwa' },
+  { href: '/swieci', label: 'Święci' },
+  { href: '/slawne-osoby', label: 'Sławne osoby' },
+  { href: '/cuda-eucharystyczne', label: 'Cuda' },
+  { href: '/mapa-wiedzy', label: 'Mapa wiedzy' },
+  { href: '/o-projekcie', label: 'O projekcie' },
+];
+
+const currentPath = Astro.url.pathname;
+---
+
+<nav class="hidden md:flex items-center gap-1 text-sm">
+  {links.map((link) => {
+    const active = currentPath === link.href || (link.href !== '/' && currentPath.startsWith(link.href));
+    return (
+      <a
+        href={link.href}
+        class:list={[
+          'px-3 py-2 rounded-md transition-colors hover:bg-secondary/40 hover:text-primary',
+          active && 'text-primary bg-secondary/30'
+        ]}
+      >
+        {link.label}
+      </a>
+    );
+  })}
+</nav>
+
+<details class="md:hidden">
+  <summary class="list-none cursor-pointer p-2 rounded-md hover:bg-secondary/40">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Menu">
+      <line x1="3" y1="6" x2="21" y2="6"/>
+      <line x1="3" y1="12" x2="21" y2="12"/>
+      <line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  </summary>
+  <div class="absolute left-0 right-0 top-full mt-2 mx-4 rounded-lg border border-border bg-card/95 backdrop-blur-sm p-2 shadow-xl z-50">
+    {links.map((link) => (
+      <a href={link.href} class="block px-3 py-2.5 rounded-md text-sm hover:bg-secondary/40 hover:text-primary">
+        {link.label}
+      </a>
+    ))}
+  </div>
+</details>

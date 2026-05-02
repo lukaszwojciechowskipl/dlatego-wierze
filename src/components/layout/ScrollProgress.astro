@@ -1,0 +1,39 @@
+---
+/* Pure-CSS-driven scroll progress bar — uses scroll-driven animations where
+   supported, fallback inline JS otherwise. Anchored to the top of the page. */
+---
+
+<div
+  id="scroll-progress"
+  class="fixed top-0 left-0 right-0 h-0.5 z-50 origin-left bg-primary scale-x-0 will-change-transform pointer-events-none"
+></div>
+
+<style>
+  @supports (animation-timeline: scroll()) {
+    #scroll-progress {
+      animation: progress-grow auto linear;
+      animation-timeline: scroll(root);
+    }
+    @keyframes progress-grow {
+      from { transform: scaleX(0); }
+      to   { transform: scaleX(1); }
+    }
+  }
+</style>
+
+<script>
+  // Fallback for browsers without scroll-driven animations (Firefox / older Safari).
+  if (!CSS.supports('animation-timeline: scroll()')) {
+    const bar = document.getElementById('scroll-progress');
+    if (bar) {
+      const update = () => {
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        const ratio = max > 0 ? window.scrollY / max : 0;
+        bar.style.transform = `scaleX(${ratio})`;
+      };
+      window.addEventListener('scroll', update, { passive: true });
+      window.addEventListener('resize', update);
+      update();
+    }
+  }
+</script>

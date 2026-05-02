@@ -1,0 +1,66 @@
+---
+import '@/styles/globals.css';
+import Header from '@/components/layout/Header.astro';
+import Footer from '@/components/layout/Footer.astro';
+import ScrollProgress from '@/components/layout/ScrollProgress.astro';
+import LenisProvider from '@/components/providers/LenisProvider';
+
+interface Props {
+  title?: string;
+  description?: string;
+  ogImage?: string;
+  noFooter?: boolean;
+  noHeader?: boolean;
+  /** When true, mounts a transparent header/footer for hero pages. */
+  transparentChrome?: boolean;
+}
+
+const {
+  title = 'Dlatego Wierzę — 15 Konstelacji',
+  description = '15 niezależnych linii argumentacji za prawdziwością chrześcijaństwa: filozofia, nauka, historia, świadectwa, cuda. Galaktyka rozumnych powodów, dla których wierzę.',
+  ogImage,
+  noFooter = false,
+  noHeader = false,
+  transparentChrome = false,
+} = Astro.props;
+
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site ?? 'https://dlatego-wierze.vercel.app');
+---
+
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href={canonicalUrl} />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="pl_PL" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    {ogImage && <meta property="og:image" content={ogImage} />}
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    {ogImage && <meta name="twitter:image" content={ogImage} />}
+
+    <meta name="theme-color" content="#0a0e27" />
+  </head>
+  <body class={transparentChrome ? '' : ''}>
+    <ScrollProgress />
+    <LenisProvider client:load>
+      {!noHeader && <Header />}
+      <main id="main">
+        <slot />
+      </main>
+      {!noFooter && <Footer />}
+    </LenisProvider>
+  </body>
+</html>

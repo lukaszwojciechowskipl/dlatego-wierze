@@ -2,6 +2,7 @@
 import BaseLayout from './BaseLayout.astro';
 import '@/styles/tufte.css';
 import { CONSTELLATIONS } from '@/lib/constants';
+import { decodeEntities } from '@/lib/typography';
 
 interface Props {
   title: string;
@@ -14,16 +15,15 @@ interface Props {
   ogImage?: string;
 }
 
-const {
-  title,
-  subtitle,
-  lead,
-  constellationId,
-  readingTimeMin,
-  keyClaim,
-  philosophers = [],
-  ogImage,
-} = Astro.props;
+const props = Astro.props;
+const title = decodeEntities(props.title);
+const subtitle = decodeEntities(props.subtitle);
+const lead = decodeEntities(props.lead);
+const keyClaim = decodeEntities(props.keyClaim);
+const constellationId = props.constellationId;
+const readingTimeMin = props.readingTimeMin;
+const philosophers = props.philosophers ?? [];
+const ogImage = props.ogImage;
 
 const constellation = CONSTELLATIONS.find(c => c.id === constellationId);
 const accent = constellation ? `hsl(${constellation.hue} 70% 65%)` : 'var(--color-cosmos-gold)';

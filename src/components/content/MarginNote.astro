@@ -1,0 +1,19 @@
+---
+interface Props {
+  /** Optional small label shown above the note */
+  label?: string;
+}
+
+const { label } = Astro.props;
+---
+
+<aside class="my-6 rounded-lg border border-border/40 bg-card/30 p-4 text-sm">
+  {label && (
+    <p class="font-mono text-[10px] uppercase tracking-widest text-primary/80 mb-1.5">
+      {label}
+    </p>
+  )}
+  <div class="text-muted-foreground leading-relaxed [&_p]:m-0 [&_p+p]:mt-2">
+    <slot />
+  </div>
+</aside>

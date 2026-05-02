@@ -1,0 +1,22 @@
+---
+interface Props {
+  num?: number | string;
+  /** When true, a tighter inline marker only — useful when the note is
+   *  already wrapped by surrounding markup. */
+  inline?: boolean;
+}
+
+const { num, inline = false } = Astro.props;
+---
+
+{inline ? (
+  <span class="sidenote-margin">
+    {num !== undefined && <span class="sidenote-num">{num}.</span>}
+    <slot />
+  </span>
+) : (
+  <aside class="sidenote">
+    {num !== undefined && <span class="sidenote-num">{num}.</span>}
+    <slot />
+  </aside>
+)}

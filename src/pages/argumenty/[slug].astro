@@ -1,0 +1,162 @@
+---
+import { getCollection, render } from 'astro:content';
+import ArgumentLayout from '@/layouts/ArgumentLayout.astro';
+import ArgumentTOC from '@/components/interactive/ArgumentTOC';
+import Sidenote from '@/components/content/Sidenote.astro';
+import MarginNote from '@/components/content/MarginNote.astro';
+import Quote from '@/components/content/Quote.astro';
+import Statistic from '@/components/content/Statistic.astro';
+import { sanityClient } from '@/lib/sanity';
+import { ARGUMENT_BY_SLUG } from '@/lib/queries';
+import { CONSTELLATIONS } from '@/lib/constants';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('arguments');
+  return entries.map((entry) => ({
+    params: { slug: entry.data.slug },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content, headings } = await render(entry);
+
+const tocHeadings = headings
+  .filter(h => h.depth >= 2 && h.depth <= 3)
+  .map(h => ({ depth: h.depth, slug: h.slug, text: h.text }));
+
+const constellation = CONSTELLATIONS.find(c => c.id === entry.data.constellationId);
+
+interface RelatedSummary {
+  related: {
+    testimonies: Array<{ _id: string; personName: string; slug: string; kind?: string; portrait?: unknown }>;
+    miracles: Array<{ _id: string; title: string; slug: string; place?: string; year?: number }>;
+    saints: Array<{ _id: string; name: string; slug: string; rank?: string }>;
+  };
+}
+
+let related: RelatedSummary['related'] = { testimonies: [], miracles: [], saints: [] };
+
+try {
+  const doc = await sanityClient.fetch(ARGUMENT_BY_SLUG, { slug: entry.data.slug });
+  if (doc) {
+    related = {
+      testimonies: doc.relatedTestimonies ?? [],
+      miracles: doc.relatedMiracles ?? [],
+      saints: doc.relatedSaints ?? [],
+    };
+  }
+} catch (err) {
+  console.warn(`[arguments/${entry.data.slug}] related Sanity items skipped:`, err);
+}
+
+const hasRelated =
+  related.testimonies.length > 0 ||
+  related.miracles.length > 0 ||
+  related.saints.length > 0;
+---
+
+<ArgumentLayout
+  title={entry.data.title}
+  subtitle={entry.data.subtitle}
+  lead={entry.data.lead}
+  constellationId={entry.data.constellationId}
+  readingTimeMin={entry.data.readingTimeMin}
+  keyClaim={entry.data.keyClaim}
+  philosophers={entry.data.philosophers}
+>
+  <Content components={{ Sidenote, MarginNote, Quote, Statistic }} />
+
+  <ArgumentTOC slot="toc" client:visible headings={tocHeadings} />
+
+  <div slot="aside" class="space-y-3">
+    {constellation && (
+      <a
+        href="/"
+        class="block rounded-lg border border-border/40 bg-card/30 p-3 text-xs hover:border-primary/40"
+      >
+        <p class="opacity-60 mb-1">Wróć do galaktyki</p>
+        <p class="text-foreground">15 konstelacji →</p>
+      </a>
+    )}
+    <a
+      href="/mapa-wiedzy"
+      class="block rounded-lg border border-border/40 bg-card/30 p-3 text-xs hover:border-primary/40"
+    >
+      <p class="opacity-60 mb-1">Zobacz powiązania</p>
+      <p class="text-foreground">Mapa wiedzy →</p>
+    </a>
+  </div>
+
+  <section slot="related">
+    {hasRelated && (
+      <div class="border-t border-border/40 mt-12">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+          <p class="font-mono text-xs uppercase tracking-[0.3em] text-primary/80 mb-3">Powiązane</p>
+          <h2 class="font-serif text-2xl sm:text-3xl mb-8">Świadectwa, święci i&nbsp;cuda</h2>
+
+          {related.testimonies.length > 0 && (
+            <div class="mb-8">
+              <p class="text-sm text-muted-foreground mb-3">Świadectwa</p>
+              <ul class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {related.testimonies.map((t) => (
+                  <li>
+                    <a href={`/swiadectwa/${t.slug}`} class="block rounded-lg border border-border/40 bg-card/30 p-4 hover:bg-card/70">
+                      <p class="font-medium">{t.personName}</p>
+                      {t.kind && <p class="text-xs uppercase tracking-widest text-primary/70 mt-1">{t.kind}</p>}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {related.saints.length > 0 && (
+            <div class="mb-8">
+              <p class="text-sm text-muted-foreground mb-3">Święci</p>
+              <ul class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {related.saints.map((s) => (
+                  <li>
+                    <a href={`/swieci/${s.slug}`} class="block rounded-lg border border-border/40 bg-card/30 p-4 hover:bg-card/70">
+                      <p class="font-medium">{s.name}</p>
+                      {s.rank && <p class="text-xs uppercase tracking-widest text-primary/70 mt-1">{s.rank}</p>}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {related.miracles.length > 0 && (
+            <div class="mb-8">
+              <p class="text-sm text-muted-foreground mb-3">Cuda</p>
+              <ul class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {related.miracles.map((m) => (
+                  <li>
+                    <a href={`/cuda-eucharystyczne/${m.slug}`} class="block rounded-lg border border-border/40 bg-card/30 p-4 hover:bg-card/70">
+                      <p class="font-medium">{m.title}</p>
+                      {(m.place || m.year) && (
+                        <p class="text-xs text-muted-foreground mt-1">
+                          {[m.place, m.year].filter(Boolean).join(' · ')}
+                        </p>
+                      )}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </div>
+    )}
+  </section>
+</ArgumentLayout>
+
+<script>
+  // Add `id` anchors to all H2/H3 inside the article so the TOC can scroll-spy.
+  // Astro's MDX render() already injects them via remark, so this is mostly a
+  // safety net for headings that were emitted without slug ids.
+  document.querySelectorAll<HTMLElement>('article h2[id], article h3[id]').forEach((el) => {
+    el.style.scrollMarginTop = '5rem';
+  });
+</script>

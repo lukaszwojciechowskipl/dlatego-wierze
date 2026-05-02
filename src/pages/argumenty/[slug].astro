@@ -6,6 +6,8 @@ import Sidenote from '@/components/content/Sidenote.astro';
 import MarginNote from '@/components/content/MarginNote.astro';
 import Quote from '@/components/content/Quote.astro';
 import Statistic from '@/components/content/Statistic.astro';
+import PrimarySource from '@/components/content/PrimarySource.astro';
+import BackupSources from '@/components/content/BackupSources.astro';
 import { sanityClient } from '@/lib/sanity';
 import { ARGUMENT_BY_SLUG } from '@/lib/queries';
 import { CONSTELLATIONS } from '@/lib/constants';
@@ -65,7 +67,15 @@ const hasRelated =
   keyClaim={entry.data.keyClaim}
   philosophers={entry.data.philosophers}
 >
+  {entry.data.primarySource && (
+    <PrimarySource source={entry.data.primarySource} color={constellation?.colorHsl} />
+  )}
+
   <Content components={{ Sidenote, MarginNote, Quote, Statistic }} />
+
+  {entry.data.backupSources && entry.data.backupSources.length > 0 && (
+    <BackupSources sources={entry.data.backupSources} />
+  )}
 
   <ArgumentTOC slot="toc" client:visible headings={tocHeadings} />
 

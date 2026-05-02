@@ -1,0 +1,157 @@
+---
+import type { ExternalSource } from '@/content.config';
+
+interface Props {
+  source: ExternalSource;
+  /** Optional accent colour from the constellation — used for the eyebrow
+   *  badge and the soft glow around the card. Pass a full HSL string. */
+  color?: string;
+}
+
+const { source, color = 'var(--color-cosmos-gold)' } = Astro.props;
+
+const TYPE_LABELS: Record<ExternalSource['type'], string> = {
+  youtube: 'wideo',
+  book: 'książka',
+  article: 'artykuł',
+  podcast: 'podcast',
+  documentary: 'film',
+  website: 'strona',
+};
+
+const LANG_LABELS: Record<NonNullable<ExternalSource['language']>, string> = {
+  pl: 'PL',
+  en: 'EN',
+  it: 'IT',
+  fr: 'FR',
+  de: 'DE',
+};
+
+function youtubeId(url: string): string | null {
+  const match = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  return match ? match[1] : null;
+}
+
+const ytId = source.type === 'youtube' ? youtubeId(source.url) : null;
+const ytThumb = ytId ? `https://i.ytimg.com/vi/${ytId}/maxresdefault.jpg` : null;
+
+const bookCover =
+  source.type === 'book' && source.isbn
+    ? `https://covers.openlibrary.org/b/isbn/${source.isbn}-L.jpg`
+    : null;
+
+const ariaLabel = `Otwórz źródło: ${source.title}${source.author ? ` (${source.author})` : ''} w nowej karcie`;
+---
+
+<aside
+  class="primary-source-card relative my-8 rounded-2xl border-2 bg-card/50 backdrop-blur-sm overflow-hidden"
+  style={`border-color: ${color}; box-shadow: 0 0 60px -15px ${color};`}
+>
+  <a
+    href={source.url}
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label={ariaLabel}
+    class="block group"
+  >
+    <div class="grid sm:grid-cols-[12rem_1fr] gap-0">
+      <!-- Visual: YouTube thumbnail / book cover / icon -->
+      <div class="relative aspect-video sm:aspect-[3/4] sm:max-h-[18rem] bg-cosmos-mid/50 flex items-center justify-center overflow-hidden">
+        {ytThumb && (
+          <>
+            <img
+              src={ytThumb}
+              alt={source.title}
+              loading="lazy"
+              class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              onerror={`this.onerror=null; this.src='https://i.ytimg.com/vi/${ytId}/hqdefault.jpg'`}
+            />
+            <div aria-hidden="true" class="relative z-10 w-16 h-16 rounded-full bg-black/70 backdrop-blur flex items-center justify-center group-hover:bg-black/90 transition-colors">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            </div>
+          </>
+        )}
+
+        {bookCover && (
+          <img
+            src={bookCover}
+            alt={`Okładka książki: ${source.title}`}
+            loading="lazy"
+            class="w-full h-full object-cover"
+            onerror="this.style.display='none'; this.parentElement.classList.add('book-fallback');"
+          />
+        )}
+
+        {!ytThumb && !bookCover && (
+          <div class="text-center px-4">
+            <div class="text-5xl mb-2 opacity-70">
+              {source.type === 'book' && '📖'}
+              {source.type === 'article' && '📰'}
+              {source.type === 'podcast' && '🎙️'}
+              {source.type === 'documentary' && '🎬'}
+              {source.type === 'website' && '🌐'}
+            </div>
+            <p class="text-xs uppercase tracking-widest opacity-60">{TYPE_LABELS[source.type]}</p>
+          </div>
+        )}
+      </div>
+
+      <div class="p-5 sm:p-6 flex flex-col justify-between gap-3">
+        <div>
+          <p
+            class="font-mono text-[10px] uppercase tracking-[0.3em] mb-3"
+            style={`color: ${color}`}
+          >
+            ★ Najmocniejsze źródło
+          </p>
+          <h3 class="font-serif text-xl sm:text-2xl leading-tight mb-2 [text-wrap:balance]">
+            {source.title}
+          </h3>
+          {source.author && (
+            <p class="text-sm text-muted-foreground mb-2">{source.author}</p>
+          )}
+          {source.description && (
+            <p class="text-sm text-foreground/85 leading-relaxed [text-wrap:pretty]">
+              {source.description}
+            </p>
+          )}
+        </div>
+
+        <div class="flex items-center gap-2 text-xs flex-wrap">
+          <span class="inline-flex items-center gap-1 rounded-full border border-border/60 px-2.5 py-1 text-muted-foreground">
+            {TYPE_LABELS[source.type]}
+          </span>
+          {source.language && (
+            <span class="inline-flex items-center gap-1 rounded-full border border-border/60 px-2.5 py-1 text-muted-foreground">
+              {LANG_LABELS[source.language]}
+            </span>
+          )}
+          {source.year && (
+            <span class="inline-flex items-center gap-1 rounded-full border border-border/60 px-2.5 py-1 text-muted-foreground">
+              {source.year}
+            </span>
+          )}
+          {source.publisher && (
+            <span class="inline-flex items-center gap-1 rounded-full border border-border/60 px-2.5 py-1 text-muted-foreground">
+              {source.publisher}
+            </span>
+          )}
+          <span class="ml-auto inline-flex items-center gap-1.5 text-foreground/80 group-hover:text-primary transition-colors font-medium">
+            Otwórz
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M7 17 17 7M9 7h8v8"/>
+            </svg>
+          </span>
+        </div>
+      </div>
+    </div>
+  </a>
+</aside>
+
+<style>
+  .book-fallback {
+    background: linear-gradient(135deg, oklch(0.28 0.05 265), oklch(0.18 0.03 270));
+  }
+</style>

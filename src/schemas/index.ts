@@ -6,6 +6,7 @@ import sidenote from './objects/sidenote';
 import statistic from './objects/statistic';
 import citation from './objects/citation';
 import pullQuote from './objects/pullQuote';
+import externalSource from './objects/externalSource';
 
 // Documents
 import argument from './documents/argument';
@@ -29,6 +30,7 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   statistic,
   citation,
   pullQuote,
+  externalSource,
   // documents
   argument,
   testimony,

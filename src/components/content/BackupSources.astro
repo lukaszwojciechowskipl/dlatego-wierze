@@ -1,0 +1,76 @@
+---
+import type { ExternalSource } from '@/content.config';
+
+interface Props {
+  sources: ExternalSource[];
+}
+
+const { sources } = Astro.props;
+
+const TYPE_ICONS: Record<ExternalSource['type'], string> = {
+  youtube: '▶',
+  book: '📖',
+  article: '📰',
+  podcast: '🎙',
+  documentary: '🎬',
+  website: '🌐',
+};
+
+const TYPE_LABELS: Record<ExternalSource['type'], string> = {
+  youtube: 'wideo',
+  book: 'książka',
+  article: 'artykuł',
+  podcast: 'podcast',
+  documentary: 'film',
+  website: 'strona',
+};
+---
+
+{sources && sources.length > 0 && (
+  <section class="my-10 not-prose">
+    <h4 class="font-mono text-xs uppercase tracking-[0.3em] text-primary/85 mb-4">
+      Materiały dodatkowe
+    </h4>
+    <ol class="space-y-2">
+      {sources.map((s) => (
+        <li>
+          <a
+            href={s.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`Otwórz źródło: ${s.title}${s.author ? ` (${s.author})` : ''} w nowej karcie`}
+            class="group flex items-start gap-3 rounded-lg border border-border/40 bg-card/30 p-3 hover:border-primary/40 hover:bg-card/60 transition-all"
+          >
+            <span aria-hidden="true" class="mt-0.5 text-base opacity-70 shrink-0 w-5 text-center">
+              {TYPE_ICONS[s.type]}
+            </span>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm leading-snug">
+                <span class="font-medium">{s.title}</span>
+                {s.author && <span class="text-muted-foreground"> — {s.author}</span>}
+              </p>
+              {s.description && (
+                <p class="text-xs text-muted-foreground mt-0.5 line-clamp-2 [text-wrap:pretty]">
+                  {s.description}
+                </p>
+              )}
+              <div class="flex items-center gap-1.5 mt-1 text-[10px] uppercase tracking-widest text-muted-foreground/60">
+                <span>{TYPE_LABELS[s.type]}</span>
+                {s.year && <><span>·</span><span>{s.year}</span></>}
+                {s.language && <><span>·</span><span>{s.language.toUpperCase()}</span></>}
+              </div>
+            </div>
+            <svg
+              aria-hidden="true"
+              class="mt-1 shrink-0 opacity-50 group-hover:opacity-100 group-hover:text-primary transition-all"
+              width="14" height="14" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+            >
+              <path d="M7 17 17 7M9 7h8v8"/>
+            </svg>
+          </a>
+        </li>
+      ))}
+    </ol>
+  </section>
+)}

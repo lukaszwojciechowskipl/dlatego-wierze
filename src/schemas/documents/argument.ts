@@ -89,6 +89,20 @@ export default defineType({
       of: [{ type: 'reference', to: [{ type: 'resource' }] }],
     }),
     defineField({
+      name: 'primarySource',
+      title: 'Najmocniejsze źródło (knockout punch)',
+      type: 'externalSource',
+      description: 'Jedno źródło zewnętrzne — wideo, książka, artykuł — które ma być centralnym dowodem dla tego argumentu.',
+    }),
+    defineField({
+      name: 'backupSources',
+      title: 'Materiały dodatkowe (2-4)',
+      type: 'array',
+      of: [{ type: 'externalSource' }],
+      validation: r => r.max(4),
+      description: 'Do 4 źródeł uzupełniających, w tej samej formie co najmocniejsze źródło.',
+    }),
+    defineField({
       name: 'seo',
       type: 'object',
       title: 'SEO',

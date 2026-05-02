@@ -55,15 +55,16 @@ export default function ConstellationNode({
     <group ref={groupRef} position={position}>
       <Sparkles
         count={sparkleCount}
-        scale={2.4}
-        size={hovered || active ? 6 : 4}
+        scale={2.6}
+        size={hovered || active ? 8 : 5}
         speed={0.45}
         color={color}
-        opacity={0.85}
+        opacity={0.88}
       />
-      {/* Brighter core */}
+      {/* Brighter core — slightly larger for visibility on small screens
+          while keeping the constellation feel of "a star, not a planet". */}
       <mesh>
-        <sphereGeometry args={[0.18, 16, 16]} />
+        <sphereGeometry args={[0.26, 20, 20]} />
         <meshBasicMaterial color={color} toneMapped={false} />
       </mesh>
       {/* Invisible click target — also runs the drag/click discrimination */}

@@ -1,6 +1,6 @@
-import { useMemo, useRef, useState } from 'react';
+import { type RefObject, useRef, useMemo, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Sparkles, Billboard, Text } from '@react-three/drei';
+import { Sparkles, Html } from '@react-three/drei';
 import { Group, Vector3 } from 'three';
 import type { Constellation } from '@/lib/constants';
 
@@ -12,13 +12,12 @@ interface Props {
   active: boolean;
   showLabels: boolean;
   reducedSparkles: boolean;
+  /** Set true while the user is dragging the camera. Pointer-up that
+   *  arrives during a drag is treated as the end of the drag, not a
+   *  navigation click. */
+  isDraggingRef: RefObject<boolean>;
 }
 
-/**
- * One constellation in the galaxy: a hover-reactive group of sparkles
- * around a transparent click target, plus an always-billboarded label that
- * scales up on hover.
- */
 export default function ConstellationNode({
   constellation: c,
   radius,
@@ -27,10 +26,13 @@ export default function ConstellationNode({
   active,
   showLabels,
   reducedSparkles,
+  isDraggingRef,
 }: Props) {
   const groupRef = useRef<Group>(null);
   const [hovered, setHovered] = useState(false);
   const targetScale = useRef(1);
+  const downXY = useRef<[number, number] | null>(null);
+  const wasDragged = useRef(false);
 
   const position = useMemo<Vector3>(
     () => new Vector3(c.position[0] * radius, c.position[1] * radius, c.position[2] * radius),
@@ -64,7 +66,7 @@ export default function ConstellationNode({
         <sphereGeometry args={[0.18, 16, 16]} />
         <meshBasicMaterial color={color} toneMapped={false} />
       </mesh>
-      {/* Invisible click target */}
+      {/* Invisible click target — also runs the drag/click discrimination */}
       <mesh
         onPointerOver={(e) => {
           e.stopPropagation();
@@ -77,7 +79,25 @@ export default function ConstellationNode({
           onHover(null);
           document.body.style.cursor = '';
         }}
-        onClick={(e) => {
+        onPointerDown={(e) => {
+          downXY.current = [e.clientX, e.clientY];
+          wasDragged.current = false;
+        }}
+        onPointerMove={(e) => {
+          if (!downXY.current) return;
+          const [x, y] = downXY.current;
+          if (Math.hypot(e.clientX - x, e.clientY - y) > 6) {
+            wasDragged.current = true;
+          }
+        }}
+        onPointerUp={(e) => {
+          // Only count as a click if (a) the user didn't drag this pointer,
+          // and (b) the OrbitControls aren't reporting a global drag from
+          // a different starting target.
+          const localDrag = wasDragged.current;
+          downXY.current = null;
+          wasDragged.current = false;
+          if (localDrag || isDraggingRef.current) return;
           e.stopPropagation();
           onSelect(c);
         }}
@@ -85,28 +105,37 @@ export default function ConstellationNode({
         <sphereGeometry args={[1.6, 12, 12]} />
         <meshBasicMaterial transparent opacity={0} />
       </mesh>
+      {/* HTML overlay label — lives outside the WebGL depth buffer, so it can
+          NEVER be occluded by the constellation core, regardless of orbit
+          angle. distanceFactor keeps it 3D-scaled with the scene. */}
       {showLabels && (
-        <Billboard position={[0, 1.6, 0]} renderOrder={10}>
-          <Text
-            fontSize={hovered || active ? 0.42 : 0.32}
-            color={hovered || active ? color : 'white'}
-            anchorX="center"
-            anchorY="bottom"
-            outlineWidth={0.018}
-            outlineColor="#0a0e27"
-            fillOpacity={hovered || active ? 1 : 0.75}
-            renderOrder={10}
-            // Disable depth testing so the label is always drawn on top of
-            // the constellation core/sparkles, regardless of the orbital
-            // angle. Without this, dragging the camera around the back of
-            // the sphere causes the label to be occluded by the planet.
-            material-depthTest={false}
-            material-depthWrite={false}
-            material-transparent
+        <Html
+          position={[0, 0.7, 0]}
+          center
+          distanceFactor={9}
+          zIndexRange={[100, 0]}
+          pointerEvents="none"
+        >
+          <span
+            style={{
+              color: hovered || active ? color : '#f5f1e8',
+              fontWeight: 600,
+              fontSize: hovered || active ? '0.95rem' : '0.7rem',
+              letterSpacing: '-0.01em',
+              opacity: hovered || active ? 1 : 0.78,
+              whiteSpace: 'nowrap',
+              textShadow:
+                '0 1px 2px rgba(10,14,39,0.95), 0 0 8px rgba(10,14,39,0.85)',
+              fontFamily:
+                "'Inter Variable', system-ui, -apple-system, sans-serif",
+              transition: 'font-size 180ms ease, color 180ms ease, opacity 180ms ease',
+              userSelect: 'none',
+              pointerEvents: 'none',
+            }}
           >
             {c.shortName}
-          </Text>
-        </Billboard>
+          </span>
+        </Html>
       )}
     </group>
   );
